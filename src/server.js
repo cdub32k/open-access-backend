@@ -27,11 +27,7 @@ import User from "./database/models/user";
 
 const app = express();
 
-app.use(
-  cors({
-    origin: "https://open-access-network.b-cdn.net",
-  })
-);
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 
