@@ -48,7 +48,7 @@ class Database {
         console.log("Database connection successful");
       })
       .catch((err) => {
-        console.error("Database connection error", process.env.DB_URL, err);
+        console.error("Database connection error");
       });
   }
 
