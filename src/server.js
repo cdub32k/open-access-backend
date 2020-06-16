@@ -30,7 +30,6 @@ const app = express();
 app.use(
   cors({
     origin: "https://open-access-network.b-cdn.net",
-    credentials: true,
   })
 );
 app.use(bodyParser.json());
