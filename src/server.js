@@ -29,7 +29,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:9000",
+    origin: "https://open-access-network.b-cdn.net/",
     credentials: true,
   })
 );
