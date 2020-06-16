@@ -108,7 +108,7 @@ app.use(express.static("public"));
 app.use(verifyTokenMiddleware);
 
 const gqlServer = new ApolloServer({
-  cors: true,
+  cors: false,
   typeDefs,
   resolvers,
   subscriptions: {
@@ -129,7 +129,7 @@ const gqlServer = new ApolloServer({
 gqlServer.applyMiddleware({
   app,
   path: "/api",
-  cors: true,
+  cors: false,
 });
 
 const httpServer = createServer(app);
