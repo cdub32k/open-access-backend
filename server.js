@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
+import "regenerator-runtime/runtime.js";
 
 import { createServer } from "http";
 import express from "express";
