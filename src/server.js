@@ -27,7 +27,13 @@ import User from "./database/models/user";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://open-access-network.b-cdn.net",
+    credentials: true,
+  })
+);
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 
@@ -102,7 +108,7 @@ app.use(express.static("public"));
 app.use(verifyTokenMiddleware);
 
 const gqlServer = new ApolloServer({
-  cors: false,
+  cors: true,
   typeDefs,
   resolvers,
   subscriptions: {
@@ -123,7 +129,7 @@ const gqlServer = new ApolloServer({
 gqlServer.applyMiddleware({
   app,
   path: "/api",
-  cors: false,
+  cors: true,
 });
 
 const httpServer = createServer(app);
