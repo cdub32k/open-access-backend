@@ -5,6 +5,8 @@ const typeDefs = gql`
     #prettier-ignore
     user(username: String!): UserResponse
     #prettier-ignore
+    users: [UserResponse]
+    #prettier-ignore
     videoSearch(username: String, query: String, hashtag: String, page: Int, lastOldest: Date): VideoSearchResponse
     #prettier-ignore
     imageSearch(username: String, query: String, hashtag: String, page: Int, lastOldest: Date): ImageSearchResponse
@@ -36,6 +38,7 @@ const typeDefs = gql`
     active: Boolean
     activeUntil: Date
     profilePic: String
+    smallPic: String
     username: String
     email: String
     displayName: String

@@ -34,6 +34,13 @@ const resolvers = {
 
       return user;
     },
+    users: async (parent, args, { req: { authorized } }, info) => {
+      if (!authorized) return null;
+
+      const users = await DB.User.find().lean();
+
+      return users;
+    },
     video: async (
       parent,
       { id, cId },
