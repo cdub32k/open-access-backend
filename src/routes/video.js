@@ -63,13 +63,11 @@ router.post("/upload", upload, async (req, res) => {
           progressive: true,
           compressionLevel: 6,
           adaptiveFiltering: true,
-          force: false,
         })
         .jpeg({
           progressive: true,
           compressionLevel: 6,
           adaptiveFiltering: true,
-          force: false,
         })
         .toBuffer(),
     };
@@ -205,13 +203,11 @@ router.put("/:id", upload, async (req, res) => {
             progressive: true,
             compressionLevel: 6,
             adaptiveFiltering: true,
-            force: false,
           })
           .jpeg({
             progressive: true,
             compressionLevel: 6,
             adaptiveFiltering: true,
-            force: false,
           })
           .toBuffer(),
       };
