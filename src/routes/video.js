@@ -51,14 +51,31 @@ router.post("/upload", upload, async (req, res) => {
     }
 
     let httpOptions = {
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
       headers: {
         AccessKey: process.env.BUNNY_CDN_PWD,
       },
       url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/vid/${req.username}/thumb-${req.files["thumb"][0].filename}`,
       method: "PUT",
-      data: await img.toBuffer(),
+      data: await img
+        .png({
+          progressive: true,
+          compressionLevel: 6,
+          adaptiveFiltering: true,
+          force: false,
+        })
+        .jpeg({
+          progressive: true,
+          compressionLevel: 6,
+          adaptiveFiltering: true,
+          force: false,
+        })
+        .toBuffer(),
     };
     let httpOptions2 = {
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
       headers: {
         AccessKey: process.env.BUNNY_CDN_PWD,
       },
@@ -176,12 +193,27 @@ router.put("/:id", upload, async (req, res) => {
       }
 
       let httpOptions = {
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
         headers: {
           AccessKey: process.env.BUNNY_CDN_PWD,
         },
         url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/vid/${req.username}/thumb-${req.files["thumb"][0].filename}`,
         method: "PUT",
-        data: await img.toBuffer(),
+        data: await img
+          .png({
+            progressive: true,
+            compressionLevel: 6,
+            adaptiveFiltering: true,
+            force: false,
+          })
+          .jpeg({
+            progressive: true,
+            compressionLevel: 6,
+            adaptiveFiltering: true,
+            force: false,
+          })
+          .toBuffer(),
       };
       let httpOptions2 = {
         headers: {

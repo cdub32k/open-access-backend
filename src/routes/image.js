@@ -48,12 +48,27 @@ router.post("/upload", upload, async (req, res) => {
     }
 
     let httpOptions = {
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
       headers: {
         AccessKey: process.env.BUNNY_CDN_PWD,
       },
       url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/img/${req.username}/thumb-${req.files["image"][0].filename}`,
       method: "PUT",
-      data: await img.toBuffer(),
+      data: await img
+        .png({
+          progressive: true,
+          compressionLevel: 6,
+          adaptiveFiltering: true,
+          force: false,
+        })
+        .jpeg({
+          progressive: true,
+          compressionLevel: 6,
+          adaptiveFiltering: true,
+          force: false,
+        })
+        .toBuffer(),
     };
 
     let bdnRes = await axios(httpOptions);
@@ -145,20 +160,50 @@ router.post("/profile/upload", profUpload, async (req, res) => {
 
     //create new pics
     let httpOptions = {
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
       headers: {
         AccessKey: process.env.BUNNY_CDN_PWD,
       },
       url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/img/${req.username}/thumb-${req.files["image"][0].filename}`,
       method: "PUT",
-      data: await img.toBuffer(),
+      data: await img
+        .png({
+          progressive: true,
+          compressionLevel: 6,
+          adaptiveFiltering: true,
+          force: false,
+        })
+        .jpeg({
+          progressive: true,
+          compressionLevel: 6,
+          adaptiveFiltering: true,
+          force: false,
+        })
+        .toBuffer(),
     };
     let httpOptions2 = {
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
       headers: {
         AccessKey: process.env.BUNNY_CDN_PWD,
       },
       url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/img/${req.username}/small-thumb-${req.files["image"][0].filename}`,
       method: "PUT",
-      data: await small.toBuffer(),
+      data: await small
+        .png({
+          progressive: true,
+          compressionLevel: 6,
+          adaptiveFiltering: true,
+          force: false,
+        })
+        .jpeg({
+          progressive: true,
+          compressionLevel: 6,
+          adaptiveFiltering: true,
+          force: false,
+        })
+        .toBuffer(),
     };
 
     let [bdnRes, bcdnRes2] = await Promise.all([

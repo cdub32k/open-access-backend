@@ -34,7 +34,7 @@ app.use(
 );
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({ limit: "1000mb" }));
 
 const verifyTokenMiddleware = (req, res, next) => {
   let token = req.headers["authorization"];
