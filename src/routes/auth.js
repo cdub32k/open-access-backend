@@ -78,13 +78,6 @@ router.post("/sign-up", async (req, res) => {
 
     if (!user) res.status(500).send({ error: "Error while creating user." });
 
-    fs.mkdir(`public/vid/${username}`, (err) => {
-      console.log(err);
-    });
-    fs.mkdir(`public/img/${username}`, (err) => {
-      console.log(err);
-    });
-
     const token = jwt.sign(
       { username, email, profilePic: user.profilePic },
       process.env.JWT_SECRET,

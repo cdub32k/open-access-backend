@@ -26,10 +26,10 @@ import resolvers from "./resolvers";
 import User from "./database/models/user";
 
 const app = express();
-
+app.use(compression());
 app.use(
   cors({
-    origin: "https://open-access-network.b-cdn.net",
+    origin: "*",
   })
 );
 
@@ -136,9 +136,9 @@ gqlServer.installSubscriptionHandlers(httpServer);
 
 httpServer.listen({ port: process.env.PORT }, () => {
   console.log(
-    `Graphql Server reading at http://localhost:${process.env.PORT}${gqlServer.graphqlPath}`
+    `Graphql Server reading at port ${process.env.PORT}${gqlServer.graphqlPath}`
   );
   console.log(
-    `Subscriptions ready at ws://localhost:${process.env.PORT}${gqlServer.subscriptionsPath}`
+    `Subscriptions ready at port ${process.env.PORT}${gqlServer.subscriptionsPath}`
   );
 });

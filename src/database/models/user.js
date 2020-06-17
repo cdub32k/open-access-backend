@@ -2,14 +2,8 @@ import mongoose from "mongoose";
 
 let userSchema = new mongoose.Schema(
   {
-    profilePic: {
-      type: String,
-      default: "http://localhost:5000/img/default-profile.png",
-    },
-    smallPic: {
-      type: String,
-      default: "http://localhost:5000/img/default-profile.png",
-    },
+    profilePic: String,
+    smallPic: String,
     username: {
       type: String,
       unique: true,

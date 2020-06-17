@@ -2,8 +2,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import sharp from "sharp";
-
+import axios from "axios";
 import fs from "fs";
+import rimraf from "rimraf";
 import multer from "multer";
 import pubsub from "../PubSub";
 import {
@@ -18,7 +19,8 @@ const router = require("express").Router();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const path = `public/img/${req.username}`;
+    const path = `tmp/uploads/img/${req.username}`;
+    if (!fs.existsSync(path)) fs.mkdirSync(path, { recursive: true });
     cb(null, path);
   },
   filename: (req, file, cb) => {
@@ -44,14 +46,24 @@ router.post("/upload", upload, async (req, res) => {
     if (metaData.width > 856) {
       img = await img.resize(856, 856);
     }
-    img.toFile(
-      `public/img/${req.username}/thumb-${req.files["image"][0].filename}`
-    );
+
+    let httpOptions = {
+      headers: {
+        AccessKey: process.env.BUNNY_CDN_PWD,
+      },
+      url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/img/${req.username}/thumb-${req.files["image"][0].filename}`,
+      method: "PUT",
+      data: await img.toBuffer(),
+    };
+
+    let bdnRes = await axios(httpOptions);
+
+    await rimraf(`tmp/uploads/img/${req.username}`, (err) => {});
 
     const image = await Media.create({
       mediaType: IMAGE_MEDIA_TYPE_ID,
       username,
-      url: `http://localhost:5000/img/${req.username}/thumb-${req.files["image"][0].filename}`,
+      url: `${process.env.BUNNY_CDN_HOST}/img/${req.username}/thumb-${req.files["image"][0].filename}`,
       title: req.body.title,
       caption: req.body.caption,
       hashtags,
@@ -67,13 +79,14 @@ router.post("/upload", upload, async (req, res) => {
 
     return res.send({ image: { _id: image._id } });
   } catch (error) {
-    return res.status(500).send({ error: "Something went wrong" });
+    return res.status(500).send({ error: "Something went wrong" + error });
   }
 });
 
 const profStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const path = `public/img/${req.username}`;
+    const path = `tmp/uploads/img/${req.username}`;
+    if (!fs.existsSync(path)) fs.mkdirSync(path, { recursive: true });
     cb(null, path);
   },
   filename: (req, file, cb) => {
@@ -93,27 +106,75 @@ router.post("/profile/upload", profUpload, async (req, res) => {
 
     let img = sharp(req.files["image"][0].path);
     const metaData = await img.metadata();
-
-    let small = await img.resize(98, 98);
-    small.toFile(
-      `public/img/${req.username}/small-thumb-${req.files["image"][0].filename}`
-    );
-
     if (metaData.width > 856) {
       img = await img.resize(856, 856);
     }
 
-    img.toFile(
-      `public/img/${req.username}/thumb-${req.files["image"][0].filename}`
-    );
+    let small = await sharp(req.files["image"][0].path).resize(98, 98);
 
-    user.profilePic = `http://localhost:5000/img/${req.username}/thumb-${req.files["image"][0].filename}`;
-    user.smallPic = `http://localhost:5000/img/${req.username}/small-thumb-${req.files["image"][0].filename}`;
+    //delete old pics
+    if (user.profilePic) {
+      let httpOptions3 = {
+        headers: {
+          AccessKey: process.env.BUNNY_CDN_PWD,
+        },
+        url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
+          process.env.BUNNY_CDN_STORAGE_ZONE
+        }/img/${req.username}/${user.profilePic.substring(
+          user.profilePic.lastIndexOf("/")
+        )}`,
+        method: "DELETE",
+      };
+      let httpOptions4 = {
+        headers: {
+          AccessKey: process.env.BUNNY_CDN_PWD,
+        },
+        url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
+          process.env.BUNNY_CDN_STORAGE_ZONE
+        }/img/${req.username}/${user.smallPic.substring(
+          user.smallPic.lastIndexOf("/")
+        )}`,
+        method: "DELETE",
+      };
+
+      let [bdnRes3, bcdnRes4] = await Promise.all([
+        axios(httpOptions3),
+        axios(httpOptions4),
+      ]);
+    }
+
+    //create new pics
+    let httpOptions = {
+      headers: {
+        AccessKey: process.env.BUNNY_CDN_PWD,
+      },
+      url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/img/${req.username}/thumb-${req.files["image"][0].filename}`,
+      method: "PUT",
+      data: await img.toBuffer(),
+    };
+    let httpOptions2 = {
+      headers: {
+        AccessKey: process.env.BUNNY_CDN_PWD,
+      },
+      url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/img/${req.username}/small-thumb-${req.files["image"][0].filename}`,
+      method: "PUT",
+      data: await small.toBuffer(),
+    };
+
+    let [bdnRes, bcdnRes2] = await Promise.all([
+      axios(httpOptions),
+      axios(httpOptions2),
+    ]);
+
+    await rimraf(`tmp/uploads/img/${req.username}`, (err) => {});
+
+    user.profilePic = `${process.env.BUNNY_CDN_HOST}/img/${req.username}/thumb-${req.files["image"][0].filename}`;
+    user.smallPic = `${process.env.BUNNY_CDN_HOST}/img/${req.username}/small-thumb-${req.files["image"][0].filename}`;
     await user.save();
 
     res.send({ user });
   } catch (error) {
-    return res.status(500).send({ error: "Something went wrong" });
+    return res.status(500).send({ error: "Something went wrong" + error });
   }
 });
 
@@ -188,8 +249,22 @@ router.delete("/:id", async (req, res) => {
       mediaType: IMAGE_MEDIA_TYPE_ID,
     });
 
-    fs.unlink(`public/${image.url.split("5000/")[1]}`);
+    //fs.unlink(`public/${image.url.split("5000/")[1]}`);
     //fs.unlink(`public/${image.thumbUrl.split("5000/")[1]}`);
+
+    let httpOptions = {
+      headers: {
+        AccessKey: process.env.BUNNY_CDN_PWD,
+      },
+      url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
+        process.env.BUNNY_CDN_STORAGE_ZONE
+      }/img/${req.username}/${image.thumbUrl.substring(
+        image.thumbUrl.lastIndexOf("/")
+      )}`,
+      method: "DELETE",
+    };
+
+    let bdnRes = await axios(httpOptions);
 
     await Like.deleteMany({
       mediaId: image._id,
