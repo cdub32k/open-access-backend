@@ -7,6 +7,8 @@ const stripe = require("stripe")(process.env.STRIPE_SK);
 
 const { User, Charge, Subscription } = require("../database");
 
+import { Mailer } from "../mailer";
+
 router.post("/process-payment", async (req, res) => {
   try {
     const {
@@ -40,7 +42,7 @@ router.post("/process-payment", async (req, res) => {
         trial_end: Math.round(new Date(user.activeUntil).getTime() / 1000),
       });
 
-      await Subscription.create({
+      const sub = await Subscription.create({
         stripeSubscriptionId: subscription.id,
         stripePlanId: subscription.plan.id,
         stripeCustomerId: subscription.customer,
@@ -49,6 +51,10 @@ router.post("/process-payment", async (req, res) => {
       });
       user.activeUntil = null;
       await user.save();
+
+      if (process.env.NODE_ENV == "production") {
+        Mailer.paymentReceipt(user, sub);
+      }
 
       return res.send({
         subscription,
@@ -79,6 +85,10 @@ router.post("/process-payment", async (req, res) => {
 
       user.activeUntil = new Date(start.setMonth(start.getMonth() + 1));
       await user.save();
+
+      if (process.env.NODE_ENV == "production") {
+        Mailer.paymentReceipt(user, charge);
+      }
 
       return res.send({ charge });
     }
@@ -112,6 +122,10 @@ router.delete("/subscription", async (req, res) => {
     user.activeUntil = trialEnd > periodEnd ? trialEnd : periodEnd;
 
     await user.save();
+
+    if (process.env.NODE_ENV == "production") {
+      Mailer.unsubscribed(user, sub);
+    }
 
     return res.status(200).send(true);
   } catch (e) {

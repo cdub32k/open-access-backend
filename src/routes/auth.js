@@ -26,12 +26,10 @@ router.post("/forgot-password", async (req, res) => {
     user.tempKeyIssuedAt = new Date();
     await user.save();
 
-    user.email = "cwood32k@gmail.com";
     Mailer.forgotPassword(user);
 
     return res.status(200).send(true);
   } catch (err) {
-    console.log("*********************", err);
     return res.status(500).send(false);
   }
 });
@@ -68,7 +66,7 @@ router.post("/login", async (req, res) => {
       { username, email: user.email, profilePic: user.profilePic },
       process.env.JWT_SECRET,
       {
-        expiresIn: "20s",
+        expiresIn: "1h",
       }
     );
 
@@ -91,7 +89,7 @@ router.post("/check-email", async (req, res) => {
     let email = req.body.email;
     let user = await User.exists({ email });
 
-    res.state(200).send(user);
+    res.status(200).send(user);
   } catch (e) {
     return res.status(500).send({ error: "Something went wrong" });
   }
@@ -126,7 +124,15 @@ router.post("/sign-up", async (req, res) => {
       { username, email, profilePic: user.profilePic },
       process.env.JWT_SECRET,
       {
-        expiresIn: "24h",
+        expiresIn: "1h",
+      }
+    );
+
+    const refreshToken = jwt.sign(
+      { username },
+      process.env.JWT_REFRESH_SECRET + user.passwordHash,
+      {
+        expiresIn: "365days",
       }
     );
 
@@ -150,13 +156,18 @@ router.post("/sign-up", async (req, res) => {
         trial_period_days: 0,
       });
 
-      await Subscription.create({
+      const sub = await Subscription.create({
         stripeSubscriptionId: subscription.id,
         stripePlanId: subscription.plan.id,
         stripeCustomerId: subscription.customer,
         username,
         amount: 2500,
       });
+
+      if (process.env.NODE_ENV == "production") {
+        Mailer.paymentReceipt(user, sub);
+      }
+
       user.activeUntil = null;
     } else {
       const result = await stripe.paymentIntents.create({
@@ -179,10 +190,18 @@ router.post("/sign-up", async (req, res) => {
 
       let today = new Date();
       user.activeUntil = new Date(today.setMonth(today.getMonth() + 1));
+
+      if (process.env.NODE_ENV == "production") {
+        Mailer.paymentReceipt(user, charge);
+      }
     }
     await user.save();
 
-    return res.status(200).send({ auth: true, token });
+    if (process.env.NODE_ENV == "production") {
+      Mailer.welcome(user);
+    }
+
+    return res.status(200).send({ auth: true, token, refreshToken });
   } catch (err) {
     return res.status(500).send({ error: "Something went wrong." + err });
   }

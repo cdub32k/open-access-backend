@@ -59,7 +59,7 @@ const verifyTokenMiddleware = (req, res, next) => {
             { username, email: user.email, profilePic: user.profilePic },
             process.env.JWT_SECRET,
             {
-              expiresIn: "10m",
+              expiresIn: "1h",
             }
           );
 
