@@ -288,18 +288,13 @@ router.delete("/:id", async (req, res) => {
       mediaType: IMAGE_MEDIA_TYPE_ID,
     });
 
-    //fs.unlink(`public/${image.url.split("5000/")[1]}`);
-    //fs.unlink(`public/${image.thumbUrl.split("5000/")[1]}`);
-
     let httpOptions = {
       headers: {
         AccessKey: process.env.BUNNY_CDN_PWD,
       },
       url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
         process.env.BUNNY_CDN_STORAGE_ZONE
-      }/img/${req.username}/${image.thumbUrl.substring(
-        image.thumbUrl.lastIndexOf("/")
-      )}`,
+      }/img/${req.username}/${image.url.substring(image.url.lastIndexOf("/"))}`,
       method: "DELETE",
     };
 
@@ -321,7 +316,7 @@ router.delete("/:id", async (req, res) => {
 
     return res.status(200).send(true);
   } catch (e) {
-    res.status(500).send({ error: "Something went wrong" });
+    res.status(500).send({ error: "Something went wrong" + e });
   }
 });
 
