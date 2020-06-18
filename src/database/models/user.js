@@ -17,6 +17,8 @@ let userSchema = new mongoose.Schema(
     stripePaymentMethodId: String,
     active: Boolean,
     activeUntil: Date,
+    tempKey: String,
+    tempKeyIssuedAt: Date,
   },
   { timestamps: { createdAt: "joinedAt" } }
 );

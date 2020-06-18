@@ -6,10 +6,54 @@ const router = require("express").Router();
 
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 const stripe = require("stripe")(process.env.STRIPE_SK);
 
 const { User, Charge, Subscription } = require("../database");
+import { Mailer } from "../mailer";
+
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { username } = req.body;
+    let user = await User.findOne({ username });
+
+    let tempKey = crypto.createHash("sha256").digest("hex");
+    while (await User.exists({ tempKey }))
+      tempKey = crypto.createHash("sha256").digest("hex");
+
+    user.tempKey = tempKey;
+    user.tempKeyIssuedAt = new Date();
+    await user.save();
+
+    user.email = "cwood32k@gmail.com";
+    Mailer.forgotPassword(user);
+
+    return res.status(200).send(true);
+  } catch (err) {
+    console.log("*********************", err);
+    return res.status(500).send(false);
+  }
+});
+
+router.post("/update-password", async (req, res) => {
+  try {
+    const { tempKey, password } = req.body;
+
+    let user = await User.findOne({ tempKey });
+
+    if (!user || new Date() - new Date(user.tempKeyIssuedAt) > 60 * 60 * 1000)
+      return res.status(403).send(false);
+
+    const passwordHash = bcrypt.hashSync(password, 8);
+    user.passwordHash = passwordHash;
+    await user.save();
+
+    return res.status(200).send(true);
+  } catch (err) {
+    return res.status(500).send(false);
+  }
+});
 
 router.post("/login", async (req, res) => {
   try {
