@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Open Access</title>
+    <style>
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      ::-webkit-scrollbar-button {
+        background: #ccc;
+      }
+
+      ::-webkit-scrollbar-track-piece {
+        background: #888;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #eee;
+      }
+    </style>
+    <script>
+      function convert2Seconds(h, m, s) {
+        let total = 0;
+        if (h) total += h * 60 * 60;
+        if (m) total += m * 60;
+        if (s) total += s * 1;
+        return total;
+      }
+      function vidJump(h, m, s) {
+        var p = document.querySelector(".react-player__preview");
+        if (p) p.click();
+        document.documentElement.scrollTop = 0;
+
+        setTimeout(function () {
+          var v = document.querySelector("video");
+          v.currentTime = convert2Seconds(h, m, s);
+          v.play();
+        }, 0);
+      }
+    </script>
+  <link href="https://open-access-network.b-cdn.net/bundle.css" rel="stylesheet"></head>
+
+  <body>
+    <div id="root"></div>
+  <script type="text/javascript" src="https://open-access-network.b-cdn.net/main.31818970fd1cbdfaa8b3.bundle.js"></script></body>
+</html>
