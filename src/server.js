@@ -102,7 +102,9 @@ app.use("/notes", verifyTokenMiddleware, noteRouter);
 
 app.use("/newsletter", newsletterRouter);
 
-app.use(express.static("public"));
+app.use("/*", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
+});
 
 app.use(verifyTokenMiddleware);
 

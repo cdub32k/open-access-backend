@@ -7,7 +7,7 @@
     "serve": "NODE_ENV=development nodemon --exec babel-node src/server.js",
     "seed:db": "babel-node jobs/seed_db.js",
     "start": "NODE_ENV=production node build/server.js",
-    "build": "rm -rf build/* && babel src --ignore node_modules --out-dir build"
+    "build": "rm -rf build/* && babel src --ignore node_modules --out-dir build && mv index.html build"
   },
   "author": "Chris Wood",
   "license": "MIT",

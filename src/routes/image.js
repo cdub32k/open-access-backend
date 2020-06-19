@@ -51,7 +51,7 @@ router.post("/upload", upload, async (req, res) => {
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
       headers: {
-        AccessKey: process.env.BUNNY_CDN_PWD,
+        AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
       },
       url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/img/${req.username}/thumb-${req.files["image"][0].filename}`,
       method: "PUT",
@@ -129,7 +129,7 @@ router.post("/profile/upload", profUpload, async (req, res) => {
     if (user.profilePic) {
       let httpOptions3 = {
         headers: {
-          AccessKey: process.env.BUNNY_CDN_PWD,
+          AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
         },
         url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
           process.env.BUNNY_CDN_STORAGE_ZONE
@@ -140,7 +140,7 @@ router.post("/profile/upload", profUpload, async (req, res) => {
       };
       let httpOptions4 = {
         headers: {
-          AccessKey: process.env.BUNNY_CDN_PWD,
+          AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
         },
         url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
           process.env.BUNNY_CDN_STORAGE_ZONE
@@ -161,7 +161,7 @@ router.post("/profile/upload", profUpload, async (req, res) => {
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
       headers: {
-        AccessKey: process.env.BUNNY_CDN_PWD,
+        AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
       },
       url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/img/${req.username}/thumb-${req.files["image"][0].filename}`,
       method: "PUT",
@@ -182,7 +182,7 @@ router.post("/profile/upload", profUpload, async (req, res) => {
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
       headers: {
-        AccessKey: process.env.BUNNY_CDN_PWD,
+        AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
       },
       url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/img/${req.username}/small-thumb-${req.files["image"][0].filename}`,
       method: "PUT",
@@ -290,7 +290,7 @@ router.delete("/:id", async (req, res) => {
 
     let httpOptions = {
       headers: {
-        AccessKey: process.env.BUNNY_CDN_PWD,
+        AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
       },
       url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
         process.env.BUNNY_CDN_STORAGE_ZONE
