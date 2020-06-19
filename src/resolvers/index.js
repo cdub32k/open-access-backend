@@ -63,6 +63,20 @@ const resolvers = {
           comm.user = {};
           comm.user.username = user.username;
           comm.user.profilePic = user.profilePic;
+          let [liked, disliked] = await Promise.all([
+            DB.CommentLike.exists({
+              mediaType: VIDEO_MEDIA_TYPE_ID,
+              username,
+              commentId: comm._id,
+            }),
+            DB.CommentDislike.exists({
+              mediaType: VIDEO_MEDIA_TYPE_ID,
+              username,
+              commentId: comm._id,
+            }),
+          ]);
+          comm.liked = liked;
+          comm.disliked = disliked;
           let c = await DB.Comment.findOne({
             _id: comm.replyId,
             mediaType: VIDEO_MEDIA_TYPE_ID,
@@ -308,12 +322,24 @@ const resolvers = {
         while (comm.replyId) {
           let user = await DB.User.findOne({
             username: comm.username,
-            mediaType: IMAGE_MEDIA_TYPE_ID,
           });
           comm.user = {};
           comm.user.username = user.username;
           comm.user.profilePic = user.profilePic;
-
+          let [liked, disliked] = await Promise.all([
+            DB.CommentLike.exists({
+              mediaType: IMAGE_MEDIA_TYPE_ID,
+              username,
+              commentId: comm._id,
+            }),
+            DB.CommentDislike.exists({
+              mediaType: IMAGE_MEDIA_TYPE_ID,
+              username,
+              commentId: comm._id,
+            }),
+          ]);
+          comm.liked = liked;
+          comm.disliked = disliked;
           let c = await DB.Comment.findOne({
             _id: comm.replyId,
             mediaType: IMAGE_MEDIA_TYPE_ID,
@@ -361,6 +387,20 @@ const resolvers = {
           comm.user = {};
           comm.user.username = user.username;
           comm.user.profilePic = user.profilePic;
+          let [liked, disliked] = await Promise.all([
+            DB.CommentLike.exists({
+              mediaType: NOTE_MEDIA_TYPE_ID,
+              username,
+              commentId: comm._id,
+            }),
+            DB.CommentDislike.exists({
+              mediaType: NOTE_MEDIA_TYPE_ID,
+              username,
+              commentId: comm._id,
+            }),
+          ]);
+          comm.liked = liked;
+          comm.disliked = disliked;
           let c = await DB.Comment.findOne({
             _id: comm.replyId,
             mediaType: NOTE_MEDIA_TYPE_ID,
