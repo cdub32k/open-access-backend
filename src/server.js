@@ -129,9 +129,10 @@ gqlServer.applyMiddleware({
   cors: false,
 });
 
-app.use("/*", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
-});
+if (process.env.NODE_ENV == "production")
+  app.use("/*", (req, res) => {
+    res.sendFile(__dirname + "/index.html");
+  });
 
 const httpServer = createServer(app);
 gqlServer.installSubscriptionHandlers(httpServer);
