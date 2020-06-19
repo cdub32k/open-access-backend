@@ -102,10 +102,6 @@ app.use("/notes", verifyTokenMiddleware, noteRouter);
 
 app.use("/newsletter", newsletterRouter);
 
-app.use("/*", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
-});
-
 app.use(verifyTokenMiddleware);
 
 const gqlServer = new ApolloServer({
@@ -131,6 +127,10 @@ gqlServer.applyMiddleware({
   app,
   path: "/api",
   cors: false,
+});
+
+app.use("/*", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
 });
 
 const httpServer = createServer(app);
