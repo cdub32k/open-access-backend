@@ -105,7 +105,7 @@ const profStorage = multer.diskStorage({
   filename: (req, file, cb) => {
     var filename = file.originalname;
     var fileExtension = filename.split(".")[filename.split(".").length - 1];
-    cb(null, "profile." + Date.now() + fileExtension);
+    cb(null, "profile." + Date.now() + "." + fileExtension);
   },
 });
 
