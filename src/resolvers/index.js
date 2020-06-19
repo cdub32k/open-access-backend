@@ -1840,7 +1840,7 @@ const resolvers = {
     ) => {
       if (!authorized) return null;
 
-      return await DB.Like.find({ username }).countDocuments();
+      return await DB.Dislike.find({ username }).countDocuments();
     },
     likes: async (
       { username, likePage },

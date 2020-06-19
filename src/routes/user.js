@@ -13,13 +13,11 @@ router.put("/", async (req, res) => {
 
     res.send({
       user: {
+        displayName: user.displayName,
         profilePic: user.profilePic,
         email: user.email,
         username: user.username,
         phoneNumber: user.phoneNumber,
-        country: user.country,
-        state: user.state,
-        city: user.city,
         bio: user.bio,
       },
     });
