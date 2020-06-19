@@ -102,7 +102,7 @@ app.use("/notes", verifyTokenMiddleware, noteRouter);
 
 app.use("/newsletter", newsletterRouter);
 
-app.use(verifyTokenMiddleware);
+app.use("/api", verifyTokenMiddleware);
 
 const gqlServer = new ApolloServer({
   cors: false,
