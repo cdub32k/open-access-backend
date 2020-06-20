@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import DB from "../database";
 
 (async () => {

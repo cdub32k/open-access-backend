@@ -57,7 +57,7 @@ router.post("/process-payment", async (req, res) => {
       }
 
       return res.send({
-        subscription,
+        subscription: { _id: sub._id },
       });
     } else {
       const result = await stripe.paymentIntents.create({
@@ -90,7 +90,7 @@ router.post("/process-payment", async (req, res) => {
         Mailer.paymentReceipt(user, charge);
       }
 
-      return res.send({ charge });
+      return res.send({ charge: { _id: charge._id } });
     }
   } catch (err) {
     return res.status(500).send({ error: "Something went wrong." });
