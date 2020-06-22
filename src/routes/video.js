@@ -14,6 +14,9 @@ import { deleteReplies, parseHashtags } from "../utils/helpers";
 
 import sharp from "sharp";
 
+import aws from "aws-sdk";
+aws.config.region = "us-west-1";
+
 const { Media, View, Like, Dislike, Comment, User } = require("../database");
 
 const router = require("express").Router();
@@ -30,10 +33,7 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + "." + fileExtension);
   },
 });
-const upload = multer({ storage }).fields([
-  { name: "video", maxCount: 1 },
-  { name: "thumb", maxCount: 1 },
-]);
+const upload = multer({ storage }).fields([{ name: "thumb", maxCount: 1 }]);
 
 router.post("/upload", upload, async (req, res) => {
   try {
@@ -49,16 +49,11 @@ router.post("/upload", upload, async (req, res) => {
     if (metaData.width > 856) {
       img = await img.resize(856, 482);
     }
-
-    let httpOptions = {
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-      headers: {
-        AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
-      },
-      url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/vid/${req.username}/thumb-${req.files["thumb"][0].filename}`,
-      method: "PUT",
-      data: await img
+    const S3_BUCKET = process.env.S3_BUCKET;
+    let s3Params = {
+      Bucket: S3_BUCKET,
+      Key: `vid/${req.username}/thumb-${req.files["thumb"][0].filename}`,
+      Body: await img
         .png({
           progressive: true,
           compressionLevel: 6,
@@ -70,30 +65,18 @@ router.post("/upload", upload, async (req, res) => {
           adaptiveFiltering: true,
         })
         .toBuffer(),
+      ACL: "public-read",
     };
-    let httpOptions2 = {
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-      headers: {
-        AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
-      },
-      url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/vid/${req.username}/${req.files["video"][0].filename}`,
-      method: "PUT",
-      data: fs.readFileSync(req.files["video"][0].path),
-    };
-
-    let [bcdnRes, bcdnRes2] = await Promise.all([
-      axios(httpOptions),
-      axios(httpOptions2),
-    ]);
+    const s3 = new aws.S3();
+    await s3.upload(s3Params).promise();
 
     rimraf(`tmp/uploads/vid/${req.username}`, (err) => {});
 
     const video = await Media.create({
       mediaType: VIDEO_MEDIA_TYPE_ID,
       username,
-      url: `${process.env.BUNNY_CDN_HOST}/vid/${req.username}/${req.files["video"][0].filename}`,
-      thumbUrl: `${process.env.BUNNY_CDN_HOST}/vid/${req.username}/thumb-${req.files["thumb"][0].filename}`,
+      url: req.body.videoUrl,
+      thumbUrl: `https://${S3_BUCKET}.s3.amazonaws.com/vid/${req.username}/thumb-${req.files["thumb"][0].filename}`,
       title: req.body.title,
       caption: req.body.caption,
       hashtags,
@@ -111,7 +94,8 @@ router.post("/upload", upload, async (req, res) => {
 
     return res.send({ video: { _id: video._id } });
   } catch (error) {
-    return res.status(500).send({ error: "Something went wrong" });
+    rimraf(`tmp/uploads/vid/${req.username}`, (err) => {});
+    return res.status(500).send({ error: "Something went wrong" + error });
   }
 });
 
@@ -181,7 +165,7 @@ router.put("/:id", upload, async (req, res) => {
     if (req.files && req.files["thumb"]) {
       criteria[
         "thumbUrl"
-      ] = `${process.env.BUNNY_CDN_HOST}/vid/${req.username}/thumb-${req.files["thumb"][0].filename}`;
+      ] = `https://${S3_BUCKET}.s3.amazonaws.com/vid/${req.username}/thumb-${req.files["thumb"][0].filename}`;
 
       let img = sharp(req.files["thumb"][0].path);
       const metaData = await img.metadata();

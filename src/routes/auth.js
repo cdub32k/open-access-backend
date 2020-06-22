@@ -8,6 +8,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
+import aws from "aws-sdk";
+aws.config.region = "us-west-1";
+
 const stripe = require("stripe")(process.env.STRIPE_SK);
 
 const { User, Charge, Subscription } = require("../database");
@@ -51,6 +54,26 @@ router.post("/update-password", async (req, res) => {
   } catch (err) {
     return res.status(500).send(false);
   }
+});
+
+router.post("/sign-s3", async (req, res) => {
+  const S3_BUCKET = process.env.S3_BUCKET;
+  const s3 = new aws.S3();
+  const fileName = req.body.fileName;
+  const fileType = req.body.fileType;
+  const s3Params = {
+    Bucket: S3_BUCKET,
+    Key: fileName,
+    Expires: 60,
+    ContentType: fileType,
+    ACL: "public-read",
+  };
+
+  const signedRequest = await s3.getSignedUrl("putObject", s3Params);
+  res.status(200).send({
+    signedRequest,
+    videoUrl: `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`,
+  });
 });
 
 router.post("/login", async (req, res) => {
