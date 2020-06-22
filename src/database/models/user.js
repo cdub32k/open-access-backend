@@ -20,7 +20,7 @@ let userSchema = new mongoose.Schema(
     tempKey: String,
     tempKeyIssuedAt: Date,
   },
-  { timestamps: { createdAt: "joinedAt" } }
+  { timestamps: { createdAt: "joinedAt" }, capped: { max: 5000 } }
 );
 
 userSchema.index({ username: 1 });

@@ -111,7 +111,7 @@ router.post("/upload", upload, async (req, res) => {
 
     return res.send({ video: { _id: video._id } });
   } catch (error) {
-    return res.status(500).send({ error: "Something went wrong" + error });
+    return res.status(500).send({ error: "Something went wrong" });
   }
 });
 
@@ -159,7 +159,7 @@ router.delete("/comments/:id", async (req, res) => {
       commentCount: video.commentCount - totalDecr,
     });
   } catch (e) {
-    res.status(500).send({ error: "Something went wrong" + e });
+    res.status(500).send({ error: "Something went wrong" });
   }
 });
 router.put("/:id", upload, async (req, res) => {

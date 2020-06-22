@@ -203,7 +203,7 @@ router.post("/sign-up", async (req, res) => {
 
     return res.status(200).send({ auth: true, token, refreshToken });
   } catch (err) {
-    return res.status(500).send({ error: "Something went wrong." + err });
+    return res.status(500).send({ error: "Something went wrong." });
   }
 });
 

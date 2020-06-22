@@ -92,7 +92,7 @@ router.post("/upload", upload, async (req, res) => {
 
     return res.send({ image: { _id: image._id } });
   } catch (error) {
-    return res.status(500).send({ error: "Something went wrong" + error });
+    return res.status(500).send({ error: "Something went wrong" });
   }
 });
 
@@ -213,7 +213,7 @@ router.post("/profile/upload", profUpload, async (req, res) => {
 
     res.send({ user });
   } catch (error) {
-    return res.status(500).send({ error: "Something went wrong" + error });
+    return res.status(500).send({ error: "Something went wrong" });
   }
 });
 
@@ -316,7 +316,7 @@ router.delete("/:id", async (req, res) => {
 
     return res.status(200).send(true);
   } catch (e) {
-    res.status(500).send({ error: "Something went wrong" + e });
+    res.status(500).send({ error: "Something went wrong" });
   }
 });
 
