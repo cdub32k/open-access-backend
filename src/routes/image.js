@@ -7,6 +7,12 @@ import fs from "fs";
 import rimraf from "rimraf";
 import multer from "multer";
 import pubsub from "../PubSub";
+
+import aws from "aws-sdk";
+aws.config.region = "us-west-1";
+const s3 = new aws.S3();
+const S3_BUCKET = process.env.S3_BUCKET;
+
 import {
   IMAGE_MEDIA_TYPE_ID,
   NEWSFEED_IMAGE_SUBSCRIPTION_PREFIX,
@@ -47,15 +53,10 @@ router.post("/upload", upload, async (req, res) => {
       img = await img.resize(856, 856);
     }
 
-    let httpOptions = {
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-      headers: {
-        AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
-      },
-      url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/img/${req.username}/thumb-${req.files["image"][0].filename}`,
-      method: "PUT",
-      data: await img
+    let s3Params = {
+      Bucket: S3_BUCKET,
+      Key: `img/${req.username}/thumb-${req.files["image"][0].filename}`,
+      Body: await img
         .png({
           progressive: true,
           compressionLevel: 6,
@@ -67,16 +68,16 @@ router.post("/upload", upload, async (req, res) => {
           adaptiveFiltering: true,
         })
         .toBuffer(),
+      ACL: "public-read",
     };
 
-    let bdnRes = await axios(httpOptions);
-
+    await s3.upload(s3Params).promise();
     await rimraf(`tmp/uploads/img/${req.username}`, (err) => {});
 
     const image = await Media.create({
       mediaType: IMAGE_MEDIA_TYPE_ID,
       username,
-      url: `${process.env.BUNNY_CDN_HOST}/img/${req.username}/thumb-${req.files["image"][0].filename}`,
+      url: `https://${S3_BUCKET}.s3.amazonaws.com/img/${req.username}/thumb-${req.files["image"][0].filename}`,
       title: req.body.title,
       caption: req.body.caption,
       hashtags,
@@ -127,45 +128,32 @@ router.post("/profile/upload", profUpload, async (req, res) => {
 
     //delete old pics
     if (user.profilePic) {
-      let httpOptions3 = {
-        headers: {
-          AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
-        },
-        url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
-          process.env.BUNNY_CDN_STORAGE_ZONE
-        }/img/${req.username}/${user.profilePic.substring(
-          user.profilePic.lastIndexOf("/")
+      let s3Params3 = {
+        Bucket: S3_BUCKET,
+        Key: `${user.profilePic.substring(
+          user.profilePic.indexOf("s3.amazonaws.com/") +
+            "s3.amazonaws.com/".length
         )}`,
-        method: "DELETE",
       };
-      let httpOptions4 = {
-        headers: {
-          AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
-        },
-        url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
-          process.env.BUNNY_CDN_STORAGE_ZONE
-        }/img/${req.username}/${user.smallPic.substring(
-          user.smallPic.lastIndexOf("/")
+      let s3Params4 = {
+        Bucket: S3_BUCKET,
+        Key: `${user.smallPic.substring(
+          user.smallPic.indexOf("s3.amazonaws.com/") +
+            "s3.amazonaws.com/".length
         )}`,
-        method: "DELETE",
       };
 
-      let [bdnRes3, bcdnRes4] = await Promise.all([
-        axios(httpOptions3),
-        axios(httpOptions4),
+      await Promise.all([
+        s3.deleteObject(s3Params3).promise(),
+        s3.deleteObject(s3Params4).promise(),
       ]);
     }
 
     //create new pics
-    let httpOptions = {
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-      headers: {
-        AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
-      },
-      url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/img/${req.username}/thumb-${req.files["image"][0].filename}`,
-      method: "PUT",
-      data: await img
+    let s3Params = {
+      Bucket: S3_BUCKET,
+      Key: `img/${req.username}/thumb-${req.files["image"][0].filename}`,
+      Body: await img
         .png({
           progressive: true,
           compressionLevel: 6,
@@ -177,16 +165,12 @@ router.post("/profile/upload", profUpload, async (req, res) => {
           adaptiveFiltering: true,
         })
         .toBuffer(),
+      ACL: "public-read",
     };
-    let httpOptions2 = {
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-      headers: {
-        AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
-      },
-      url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/img/${req.username}/small-thumb-${req.files["image"][0].filename}`,
-      method: "PUT",
-      data: await small
+    let s3Params2 = {
+      Bucket: S3_BUCKET,
+      Key: `img/${req.username}/small-thumb-${req.files["image"][0].filename}`,
+      Body: await small
         .png({
           progressive: true,
           compressionLevel: 6,
@@ -198,17 +182,18 @@ router.post("/profile/upload", profUpload, async (req, res) => {
           adaptiveFiltering: true,
         })
         .toBuffer(),
+      ACL: "public-read",
     };
 
-    let [bdnRes, bcdnRes2] = await Promise.all([
-      axios(httpOptions),
-      axios(httpOptions2),
+    await Promise.all([
+      s3.upload(s3Params).promise(),
+      s3.upload(s3Params2).promise(),
     ]);
 
     await rimraf(`tmp/uploads/img/${req.username}`, (err) => {});
 
-    user.profilePic = `${process.env.BUNNY_CDN_HOST}/img/${req.username}/thumb-${req.files["image"][0].filename}`;
-    user.smallPic = `${process.env.BUNNY_CDN_HOST}/img/${req.username}/small-thumb-${req.files["image"][0].filename}`;
+    user.profilePic = `https://${S3_BUCKET}.s3.amazonaws.com/img/${req.username}/thumb-${req.files["image"][0].filename}`;
+    user.smallPic = `https://${S3_BUCKET}.s3.amazonaws.com/img/${req.username}/small-thumb-${req.files["image"][0].filename}`;
     await user.save();
 
     res.send({ user });
@@ -288,31 +273,29 @@ router.delete("/:id", async (req, res) => {
       mediaType: IMAGE_MEDIA_TYPE_ID,
     });
 
-    let httpOptions = {
-      headers: {
-        AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
-      },
-      url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
-        process.env.BUNNY_CDN_STORAGE_ZONE
-      }/img/${req.username}/${image.url.substring(image.url.lastIndexOf("/"))}`,
-      method: "DELETE",
+    let s3Params = {
+      Bucket: S3_BUCKET,
+      Key: `${image.url.substring(
+        image.url.indexOf("s3.amazonaws.com/") + "s3.amazonaws.com/".length
+      )}`,
     };
 
-    let bdnRes = await axios(httpOptions);
-
-    await Like.deleteMany({
-      mediaId: image._id,
-      mediaType: IMAGE_MEDIA_TYPE_ID,
-    });
-    await Dislike.deleteMany({
-      mediaId: image._id,
-      mediaType: IMAGE_MEDIA_TYPE_ID,
-    });
-    await Comment.deleteMany({
-      mediaId: image._id,
-      mediaType: IMAGE_MEDIA_TYPE_ID,
-    });
-    await image.delete();
+    await Promise.all([
+      s3.deleteObject(s3Params).promise(),
+      Like.deleteMany({
+        mediaId: image._id,
+        mediaType: IMAGE_MEDIA_TYPE_ID,
+      }),
+      Dislike.deleteMany({
+        mediaId: image._id,
+        mediaType: IMAGE_MEDIA_TYPE_ID,
+      }),
+      Comment.deleteMany({
+        mediaId: image._id,
+        mediaType: IMAGE_MEDIA_TYPE_ID,
+      }),
+      image.delete(),
+    ]);
 
     return res.status(200).send(true);
   } catch (e) {

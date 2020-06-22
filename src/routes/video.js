@@ -16,6 +16,8 @@ import sharp from "sharp";
 
 import aws from "aws-sdk";
 aws.config.region = "us-west-1";
+const s3 = new aws.S3();
+const S3_BUCKET = process.env.S3_BUCKET;
 
 const { Media, View, Like, Dislike, Comment, User } = require("../database");
 
@@ -49,7 +51,7 @@ router.post("/upload", upload, async (req, res) => {
     if (metaData.width > 856) {
       img = await img.resize(856, 482);
     }
-    const S3_BUCKET = process.env.S3_BUCKET;
+
     let s3Params = {
       Bucket: S3_BUCKET,
       Key: `vid/${req.username}/thumb-${req.files["thumb"][0].filename}`,
@@ -67,7 +69,7 @@ router.post("/upload", upload, async (req, res) => {
         .toBuffer(),
       ACL: "public-read",
     };
-    const s3 = new aws.S3();
+
     await s3.upload(s3Params).promise();
 
     rimraf(`tmp/uploads/vid/${req.username}`, (err) => {});
@@ -95,7 +97,7 @@ router.post("/upload", upload, async (req, res) => {
     return res.send({ video: { _id: video._id } });
   } catch (error) {
     rimraf(`tmp/uploads/vid/${req.username}`, (err) => {});
-    return res.status(500).send({ error: "Something went wrong" + error });
+    return res.status(500).send({ error: "Something went wrong" });
   }
 });
 
@@ -174,15 +176,10 @@ router.put("/:id", upload, async (req, res) => {
         img = await img.resize(856, 482);
       }
 
-      let httpOptions = {
-        maxContentLength: Infinity,
-        maxBodyLength: Infinity,
-        headers: {
-          AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
-        },
-        url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${process.env.BUNNY_CDN_STORAGE_ZONE}/vid/${req.username}/thumb-${req.files["thumb"][0].filename}`,
-        method: "PUT",
-        data: await img
+      let s3Params = {
+        Bucket: S3_BUCKET,
+        Key: `vid/${req.username}/thumb-${req.files["thumb"][0].filename}`,
+        Body: await img
           .png({
             progressive: true,
             compressionLevel: 6,
@@ -194,22 +191,19 @@ router.put("/:id", upload, async (req, res) => {
             adaptiveFiltering: true,
           })
           .toBuffer(),
+        ACL: "public-read",
       };
-      let httpOptions2 = {
-        headers: {
-          AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
-        },
-        url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
-          process.env.BUNNY_CDN_STORAGE_ZONE
-        }/vid/${req.username}/${video.thumbUrl.substring(
-          video.thumbUrl.lastIndexOf("/")
+      let s3Params2 = {
+        Bucket: S3_BUCKET,
+        Key: `${video.thumbUrl.substring(
+          video.thumbUrl.indexOf("s3.amazonaws.com/") +
+            "s3.amazonaws.com/".length
         )}`,
-        method: "DELETE",
       };
 
-      let [bcdnRes, bcdnRes2] = await Promise.all([
-        axios(httpOptions),
-        axios(httpOptions2),
+      await Promise.all([
+        s3.upload(s3Params).promise(),
+        s3.deleteObject(s3Params2).promise(),
       ]);
 
       rimraf(`tmp/uploads/vid/${req.username}`, (err) => {});
@@ -228,49 +222,40 @@ router.delete("/:id", async (req, res) => {
       mediaType: VIDEO_MEDIA_TYPE_ID,
     });
 
-    let httpOptions = {
-      headers: {
-        AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
-      },
-      url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
-        process.env.BUNNY_CDN_STORAGE_ZONE
-      }/vid/${req.username}/${video.url.substring(video.url.lastIndexOf("/"))}`,
-      method: "DELETE",
-    };
-    let httpOptions2 = {
-      headers: {
-        AccessKey: process.env.BUNNY_CDN_STORAGE_ZONE_PWD,
-      },
-      url: `${process.env.BUNNY_CDN_STORAGE_API_URL}/${
-        process.env.BUNNY_CDN_STORAGE_ZONE
-      }/vid/${req.username}/${video.thumbUrl.substring(
-        video.thumbUrl.lastIndexOf("/")
+    let s3Params = {
+      Bucket: S3_BUCKET,
+      Key: `${video.url.substring(
+        video.url.indexOf("s3.amazonaws.com/") + "s3.amazonaws.com/".length
       )}`,
-      method: "DELETE",
+    };
+    let s3Params2 = {
+      Bucket: S3_BUCKET,
+      Key: `${video.thumbUrl.substring(
+        video.thumbUrl.indexOf("s3.amazonaws.com/") + "s3.amazonaws.com/".length
+      )}`,
     };
 
-    let [bdnRes, bcdnRes2] = await Promise.all([
-      axios(httpOptions),
-      axios(httpOptions2),
+    await Promise.all([
+      s3.deleteObject(s3Params).promise(),
+      s3.deleteObject(s3Params2).promise(),
+      Like.deleteMany({
+        mediaId: video._id,
+        mediaType: VIDEO_MEDIA_TYPE_ID,
+      }),
+      Dislike.deleteMany({
+        mediaId: video._id,
+        mediaType: VIDEO_MEDIA_TYPE_ID,
+      }),
+      Comment.deleteMany({
+        mediaId: video._id,
+        mediaType: VIDEO_MEDIA_TYPE_ID,
+      }),
+      View.deleteMany({
+        mediaId: video._id,
+        mediaType: VIDEO_MEDIA_TYPE_ID,
+      }),
+      video.delete(),
     ]);
-
-    await Like.deleteMany({
-      mediaId: video._id,
-      mediaType: VIDEO_MEDIA_TYPE_ID,
-    });
-    await Dislike.deleteMany({
-      mediaId: video._id,
-      mediaType: VIDEO_MEDIA_TYPE_ID,
-    });
-    await Comment.deleteMany({
-      mediaId: video._id,
-      mediaType: VIDEO_MEDIA_TYPE_ID,
-    });
-    await View.deleteMany({
-      mediaId: video._id,
-      mediaType: VIDEO_MEDIA_TYPE_ID,
-    });
-    await video.delete();
 
     return res.status(200).send(true);
   } catch (e) {
