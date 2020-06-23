@@ -78,7 +78,7 @@ router.post("/upload", upload, async (req, res) => {
       mediaType: VIDEO_MEDIA_TYPE_ID,
       username,
       url: req.body.videoUrl,
-      thumbUrl: `https://${S3_BUCKET}.s3.amazonaws.com/vid/${req.username}/thumb-${req.files["thumb"][0].filename}`,
+      thumbUrl: `https://${S3_BUCKET}.s3.amazonaws.com/app/vid/${req.username}/thumb-${req.files["thumb"][0].filename}`,
       title: req.body.title,
       caption: req.body.caption,
       hashtags,
@@ -167,7 +167,7 @@ router.put("/:id", upload, async (req, res) => {
     if (req.files && req.files["thumb"]) {
       criteria[
         "thumbUrl"
-      ] = `https://${S3_BUCKET}.s3.amazonaws.com/vid/${req.username}/thumb-${req.files["thumb"][0].filename}`;
+      ] = `https://${S3_BUCKET}.s3.amazonaws.com/app/vid/${req.username}/thumb-${req.files["thumb"][0].filename}`;
 
       let img = sharp(req.files["thumb"][0].path);
       const metaData = await img.metadata();
