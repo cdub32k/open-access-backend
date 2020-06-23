@@ -1,7 +1,14 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-const { Media, Like, Dislike, Comment } = require("../database");
+const {
+  Media,
+  Like,
+  Dislike,
+  Comment,
+  CommentLike,
+  CommentDislike,
+} = require("../database");
 
 const router = require("express").Router();
 import { deleteReplies } from "../utils/helpers";
@@ -59,16 +66,26 @@ router.delete("/:id", async (req, res) => {
       mediaType: NOTE_MEDIA_TYPE_ID,
     });
 
-    await Like.deleteMany({ noteId: note._id, mediaType: NOTE_MEDIA_TYPE_ID });
-    await Dislike.deleteMany({
-      noteId: note._id,
-      mediaType: NOTE_MEDIA_TYPE_ID,
-    });
-    await Comment.deleteMany({
-      noteId: note._id,
-      mediaType: NOTE_MEDIA_TYPE_ID,
-    });
-    await note.delete();
+    await Promise.all([
+      Like.deleteMany({ mediaId: note._id, mediaType: NOTE_MEDIA_TYPE_ID }),
+      Dislike.deleteMany({
+        mediaId: note._id,
+        mediaType: NOTE_MEDIA_TYPE_ID,
+      }),
+      Comment.deleteMany({
+        mediaId: note._id,
+        mediaType: NOTE_MEDIA_TYPE_ID,
+      }),
+      CommentLike.deleteMany({
+        mediaId: note._id,
+        mediaType: NOTE_MEDIA_TYPE_ID,
+      }),
+      CommentDislike.deleteMany({
+        mediaId: note._id,
+        mediaType: NOTE_MEDIA_TYPE_ID,
+      }),
+      note.delete(),
+    ]);
 
     return res.status(200).send(true);
   } catch (e) {

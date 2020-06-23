@@ -19,7 +19,16 @@ aws.config.region = "us-west-1";
 const s3 = new aws.S3();
 const S3_BUCKET = process.env.S3_BUCKET;
 
-const { Media, View, Like, Dislike, Comment, User } = require("../database");
+const {
+  Media,
+  View,
+  Like,
+  Dislike,
+  Comment,
+  CommentLike,
+  CommentDislike,
+  User,
+} = require("../database");
 
 const router = require("express").Router();
 
@@ -247,6 +256,14 @@ router.delete("/:id", async (req, res) => {
         mediaType: VIDEO_MEDIA_TYPE_ID,
       }),
       Comment.deleteMany({
+        mediaId: video._id,
+        mediaType: VIDEO_MEDIA_TYPE_ID,
+      }),
+      CommentLike.deleteMany({
+        mediaId: video._id,
+        mediaType: VIDEO_MEDIA_TYPE_ID,
+      }),
+      CommentDislike.deleteMany({
         mediaId: video._id,
         mediaType: VIDEO_MEDIA_TYPE_ID,
       }),

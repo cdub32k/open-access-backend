@@ -19,7 +19,15 @@ import {
 } from "../constants";
 import { deleteReplies, parseHashtags } from "../utils/helpers";
 
-const { Media, Like, Dislike, Comment, User } = require("../database");
+const {
+  Media,
+  Like,
+  Dislike,
+  Comment,
+  CommentLike,
+  CommentDislike,
+  User,
+} = require("../database");
 
 const router = require("express").Router();
 
@@ -291,6 +299,14 @@ router.delete("/:id", async (req, res) => {
         mediaType: IMAGE_MEDIA_TYPE_ID,
       }),
       Comment.deleteMany({
+        mediaId: image._id,
+        mediaType: IMAGE_MEDIA_TYPE_ID,
+      }),
+      CommentLike.deleteMany({
+        mediaId: image._id,
+        mediaType: IMAGE_MEDIA_TYPE_ID,
+      }),
+      CommentDislike.deleteMany({
         mediaId: image._id,
         mediaType: IMAGE_MEDIA_TYPE_ID,
       }),
