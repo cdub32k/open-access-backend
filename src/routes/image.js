@@ -77,7 +77,7 @@ router.post("/upload", upload, async (req, res) => {
     const image = await Media.create({
       mediaType: IMAGE_MEDIA_TYPE_ID,
       username,
-      url: `https://${S3_BUCKET}.s3.amazonaws.com/app/img/${req.username}/thumb-${req.files["image"][0].filename}`,
+      url: `https://${S3_BUCKET}.s3.amazonaws.com/img/${req.username}/thumb-${req.files["image"][0].filename}`,
       title: req.body.title,
       caption: req.body.caption,
       hashtags,
@@ -192,8 +192,8 @@ router.post("/profile/upload", profUpload, async (req, res) => {
 
     await rimraf(`tmp/uploads/img/${req.username}`, (err) => {});
 
-    user.profilePic = `https://${S3_BUCKET}.s3.amazonaws.com/app/img/${req.username}/thumb-${req.files["image"][0].filename}`;
-    user.smallPic = `https://${S3_BUCKET}.s3.amazonaws.com/app/img/${req.username}/small-thumb-${req.files["image"][0].filename}`;
+    user.profilePic = `https://${S3_BUCKET}.s3.amazonaws.com/img/${req.username}/thumb-${req.files["image"][0].filename}`;
+    user.smallPic = `https://${S3_BUCKET}.s3.amazonaws.com/img/${req.username}/small-thumb-${req.files["image"][0].filename}`;
     await user.save();
 
     res.send({ user });
