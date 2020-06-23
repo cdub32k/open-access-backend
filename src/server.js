@@ -56,7 +56,7 @@ const verifyTokenMiddleware = (req, res, next) => {
         (err, decoded) => {
           if (err) return res.status(403).send({ error: "Forbidden" });
           const token = jwt.sign(
-            { username, email: user.email, profilePic: user.profilePic },
+            { username, email: user.email },
             process.env.JWT_SECRET,
             {
               expiresIn: "1h",

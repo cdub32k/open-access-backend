@@ -86,7 +86,7 @@ router.post("/login", async (req, res) => {
       return res.status(401).send({ auth: false, token: null });
 
     const token = jwt.sign(
-      { username, email: user.email, profilePic: user.profilePic },
+      { username, email: user.email },
       process.env.JWT_SECRET,
       {
         expiresIn: "1h",
@@ -143,13 +143,9 @@ router.post("/sign-up", async (req, res) => {
 
     if (!user) res.status(500).send({ error: "Error while creating user." });
 
-    const token = jwt.sign(
-      { username, email, profilePic: user.profilePic },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1h",
-      }
-    );
+    const token = jwt.sign({ username, email }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
 
     const refreshToken = jwt.sign(
       { username },
