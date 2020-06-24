@@ -82,16 +82,20 @@ export async function converAtMentionsToLinks(
   mediaId,
   commentId
 ) {
+  let sentNotifs = {};
   return replaceAsync(str, /@[a-z0-9_-]{3,16}/g, async (match) => {
     let username = match.slice(1);
     if (await User.exists({ username })) {
-      await sendAtMentionNotification(
-        creator,
-        username,
-        mediaType,
-        mediaId,
-        commentId
-      );
+      if (!sentNotifs[username]) {
+        await sendAtMentionNotification(
+          creator,
+          username,
+          mediaType,
+          mediaId,
+          commentId
+        );
+        sentNotifs[username] = true;
+      }
       return `<a href='/profile/${match.slice(1)}'>${match}</a>`;
     }
 
