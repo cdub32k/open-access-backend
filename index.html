@@ -30,7 +30,15 @@
         if (s) total += s * 1;
         return total;
       }
-      function vidJump(h, m, s) {
+      function vidJump(videoId, h, m, s) {
+        if (window.location.href.indexOf("video-player") == -1) {
+          let link = "/video-player/" + videoId + "?";
+          if (h) link += "h=" + h + "&";
+          if (m) link += "m=" + m + "&";
+          if (s) link += "s=" + s;
+          window.location.href = link;
+        }
+
         var p = document.querySelector(".react-player__preview");
         if (p) p.click();
         document.documentElement.scrollTop = 0;
@@ -46,5 +54,5 @@
 
   <body>
     <div id="root"></div>
-  <script type="text/javascript" src="https://open-access-dev.s3.amazonaws.com/app/main.233438755c16172626e5.bundle.js"></script></body>
+  <script type="text/javascript" src="https://open-access-dev.s3.amazonaws.com/app/main.6c3c2fd99d5a2f15a3bf.bundle.js"></script></body>
 </html>
