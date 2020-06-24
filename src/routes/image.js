@@ -212,10 +212,12 @@ router.post("/profile/upload", profUpload, async (req, res) => {
 
 router.put("/comments/:id", async (req, res) => {
   try {
-    await Comment.updateOne(
-      { _id: req.params.id, mediaType: IMAGE_MEDIA_TYPE_ID },
-      { body: req.body.body }
-    );
+    let c = await Comment.findOne({
+      _id: req.params.id,
+      mediaType: IMAGE_MEDIA_TYPE_ID,
+    });
+    c.body = req.body.body;
+    await c.save();
 
     return res.status(200).send(true);
   } catch (e) {
@@ -263,10 +265,15 @@ router.put("/:id", async (req, res) => {
     let hashtags = parseHashtags(req.body.title).concat(
       parseHashtags(req.body.caption)
     );
-    await Media.updateOne(
-      { _id: req.params.id, mediaType: IMAGE_MEDIA_TYPE_ID },
-      { title: req.body.title, caption: req.body.caption, hashtags }
-    );
+    let m = await Media.findOne({
+      _id: req.params.id,
+      mediaType: IMAGE_MEDIA_TYPE_ID,
+    });
+
+    m.title = req.body.title;
+    m.caption = req.body.caption;
+    m.hashtags = hashtags;
+    await m.save();
 
     return res.status(200).send(true);
   } catch (e) {

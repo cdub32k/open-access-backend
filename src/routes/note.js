@@ -16,7 +16,12 @@ import { NOTE_MEDIA_TYPE_ID, IMAGE_SUBSCRIPTION_PREFIX } from "../constants";
 
 router.put("/comments/:id", async (req, res) => {
   try {
-    await Comment.updateOne({ _id: req.params.id }, { body: req.body.body });
+    let c = await Comment.findOne({
+      _id: req.params.id,
+      mediaType: NOTE_MEDIA_TYPE_ID,
+    });
+    c.body = req.body.body;
+    await c.save();
 
     return res.status(200).send(true);
   } catch (e) {

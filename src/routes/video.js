@@ -112,10 +112,12 @@ router.post("/upload", upload, async (req, res) => {
 
 router.put("/comments/:id", async (req, res) => {
   try {
-    await Comment.updateOne(
-      { _id: req.params.id, mediaType: VIDEO_MEDIA_TYPE_ID },
-      { body: req.body.body }
-    );
+    let c = await Comment.findOne({
+      _id: req.params.id,
+      mediaType: VIDEO_MEDIA_TYPE_ID,
+    });
+    c.body = req.body.body;
+    await c.save();
 
     return res.status(200).send(true);
   } catch (e) {
@@ -217,7 +219,8 @@ router.put("/:id", upload, async (req, res) => {
 
       rimraf(`tmp/uploads/vid/${req.username}`, (err) => {});
     }
-    await video.update(criteria);
+    for (let key in criteria) video[key] = criteria[key];
+    await video.save();
 
     return res.status(200).send(true);
   } catch (e) {

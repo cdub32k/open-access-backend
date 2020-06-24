@@ -5,7 +5,11 @@ import {
   NOTE_MEDIA_TYPE_ID,
 } from "../../constants";
 
-import { parseLinks } from "../../utils/helpers";
+import {
+  parseLinks,
+  stripLinks,
+  convertVideoTimestampsToLinks,
+} from "../../utils/helpers";
 
 let mediaSchema = new mongoose.Schema(
   {
@@ -26,12 +30,28 @@ let mediaSchema = new mongoose.Schema(
 
 mediaSchema.pre("save", async function (next) {
   try {
-    this.caption = await parseLinks(
-      this.caption,
-      this.username,
-      this.mediaType,
-      this._id
-    );
+    if (this.isNew) {
+      this.caption = await parseLinks(
+        this.caption,
+        this.username,
+        this.mediaType,
+        this._id
+      );
+
+      if (this.mediaType == VIDEO_MEDIA_TYPE_ID)
+        this.caption = convertVideoTimestampsToLinks(this._id, this.caption);
+    }
+    if (!this.isNew && this.isModified("caption")) {
+      this.caption = stripLinks(this.caption);
+      this.caption = await parseLinks(
+        this.caption,
+        this.username,
+        this.mediaType,
+        this._id
+      );
+      if (this.mediaType == VIDEO_MEDIA_TYPE_ID)
+        this.caption = convertVideoTimestampsToLinks(this._id, this.caption);
+    }
 
     if (
       ((this.mediaType == VIDEO_MEDIA_TYPE_ID ||

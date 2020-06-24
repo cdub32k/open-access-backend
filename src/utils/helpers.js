@@ -47,6 +47,14 @@ export async function parseLinks(str, creator, mediaType, mediaId, commentId) {
   );
 }
 
+export function stripLinks(str) {
+  return str
+    .replace(/&lt/g, "<")
+    .replace(/&gt/g, ">")
+    .replace(/<a.*?[^=]>/g, "")
+    .replace(/<\/a>/g, "");
+}
+
 export function convertHashtagsToLinks(str) {
   return str
     .replace(/</g, "&lt")
@@ -57,7 +65,7 @@ export function convertHashtagsToLinks(str) {
     );
 }
 
-export function parseVideoTimestampsToLinks(videoId, str) {
+export function convertVideoTimestampsToLinks(videoId, str) {
   return str.replace(
     /(?:([0-5]?[0-9]):)?([0-5]?[0-9]):([0-5][0-9])/g,
     (match, h, m, s) =>
