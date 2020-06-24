@@ -5,6 +5,8 @@ import {
   NOTE_MEDIA_TYPE_ID,
 } from "../../constants";
 
+import { parseLinks } from "../../utils/helpers";
+
 let mediaSchema = new mongoose.Schema(
   {
     mediaType: { type: String, required: true },
@@ -22,16 +24,27 @@ let mediaSchema = new mongoose.Schema(
   { timestamps: { createdAt: "uploadedAt" } }
 );
 
-mediaSchema.pre("save", function (next) {
-  if (
-    ((this.mediaType == VIDEO_MEDIA_TYPE_ID ||
-      this.mediaType == IMAGE_MEDIA_TYPE_ID) &&
-      (this.title.length > 120 || this.caption.length > 2000)) ||
-    (this.mediaType == NOTE_MEDIA_TYPE_ID && this.caption.length > 800)
-  ) {
-    let err = new Error("field max length exceeded");
-    next(err);
-  } else next();
+mediaSchema.pre("save", async function (next) {
+  try {
+    this.caption = await parseLinks(
+      this.caption,
+      this.username,
+      this.mediaType,
+      this._id
+    );
+
+    if (
+      ((this.mediaType == VIDEO_MEDIA_TYPE_ID ||
+        this.mediaType == IMAGE_MEDIA_TYPE_ID) &&
+        (this.title.length > 120 || this.caption.length > 2000)) ||
+      (this.mediaType == NOTE_MEDIA_TYPE_ID && this.caption.length > 800)
+    ) {
+      throw new Error("field max length exceeded");
+    }
+    next();
+  } catch (e) {
+    next(e);
+  }
 });
 mediaSchema.index({ mediaType: 1 });
 mediaSchema.index({ username: 1 });
