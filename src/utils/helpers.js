@@ -27,14 +27,7 @@ export function parseHashtags(str) {
 }
 
 export function convertQueryToRegex(str) {
-  return new RegExp(
-    str
-      .split(",")
-      .map((term) => term.trim())
-      .filter((term) => term)
-      .join("|"),
-    "gi"
-  );
+  return new RegExp(str.split(",").join("|"), "gi");
 }
 
 export async function parseLinks(str, creator, mediaType, mediaId, commentId) {
