@@ -54,7 +54,7 @@ export function convertHashtagsToLinks(str) {
     .replace(/>/g, "&gt")
     .replace(
       /(#[a-z0-9_-]+)/g,
-      (match) => `<a href='/search?h=${match.slice(1)}'>${match}</a>`
+      (match) => `<a nativelink href='/search?h=${match.slice(1)}'>${match}</a>`
     );
 }
 
@@ -97,7 +97,7 @@ export async function converAtMentionsToLinks(
         );
         sentNotifs[username] = true;
       }
-      return `<a href='/profile/${match.slice(1)}'>${match}</a>`;
+      return `<a nativelink href='/profile/${match.slice(1)}'>${match}</a>`;
     }
 
     return match;
