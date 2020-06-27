@@ -1631,14 +1631,14 @@ const resolvers = {
       user.profilePic = user.smallPic;
       return user;
     },
-    liked: async ({ _id, username }, args, context, info) => {
+    liked: async ({ _id }, args, { req: { username } }, info) => {
       return await DB.Like.exists({
         username,
         mediaId: _id,
         mediaType: NOTE_MEDIA_TYPE_ID,
       });
     },
-    disliked: async ({ _id, username }, args, context, info) => {
+    disliked: async ({ _id }, args, { req: { username } }, info) => {
       return await DB.Dislike.exists({
         username,
         mediaId: _id,
@@ -1680,14 +1680,14 @@ const resolvers = {
       user.profilePic = user.smallPic;
       return user;
     },
-    liked: async ({ _id, username }, args, context, info) => {
+    liked: async ({ _id }, args, { req: { username } }, info) => {
       return await DB.CommentLike.exists({
         mediaType: NOTE_MEDIA_TYPE_ID,
         username,
         commentId: _id,
       });
     },
-    disliked: async ({ _id, username }, args, context, info) => {
+    disliked: async ({ _id }, args, { req: { username } }, info) => {
       return await DB.CommentDislike.exists({
         mediaType: NOTE_MEDIA_TYPE_ID,
         username,
@@ -1709,14 +1709,14 @@ const resolvers = {
       user.profilePic = user.smallPic;
       return user;
     },
-    liked: async ({ _id, username }, args, context, info) => {
+    liked: async ({ _id }, args, { req: { username } }, info) => {
       return await DB.Like.exists({
         username,
         mediaId: _id,
         mediaType: IMAGE_MEDIA_TYPE_ID,
       });
     },
-    disliked: async ({ _id, username }, args, context, info) => {
+    disliked: async ({ _id }, args, { req: { username } }, info) => {
       return await DB.Dislike.exists({
         mediaType: IMAGE_MEDIA_TYPE_ID,
         username,
@@ -1762,14 +1762,14 @@ const resolvers = {
       user.profilePic = user.smallPic;
       return user;
     },
-    liked: async ({ _id, username }, args, context, info) => {
+    liked: async ({ _id }, args, { req: { username } }, info) => {
       return await DB.CommentLike.exists({
         mediaType: IMAGE_MEDIA_TYPE_ID,
         username,
         commentId: _id,
       });
     },
-    disliked: async ({ _id, username }, args, context, info) => {
+    disliked: async ({ _id }, args, { req: { username } }, info) => {
       return await DB.CommentDislike.exists({
         mediaType: IMAGE_MEDIA_TYPE_ID,
         username,
@@ -1791,14 +1791,14 @@ const resolvers = {
       user.profilePic = user.smallPic;
       return user;
     },
-    liked: async ({ _id, username }, args, context, info) => {
+    liked: async ({ _id }, args, { req: { username } }, info) => {
       return await DB.Like.exists({
         username,
         mediaId: _id,
         mediaType: VIDEO_MEDIA_TYPE_ID,
       });
     },
-    disliked: async ({ _id, username }, args, context, info) => {
+    disliked: async ({ _id }, args, { req: { username } }, info) => {
       return await DB.Dislike.exists({
         mediaType: VIDEO_MEDIA_TYPE_ID,
         username,
@@ -1846,14 +1846,14 @@ const resolvers = {
       user.profilePic = user.smallPic;
       return user;
     },
-    liked: async ({ _id, username }, args, context, info) => {
+    liked: async ({ _id }, args, { req: { username } }, info) => {
       return await DB.CommentLike.exists({
         mediaType: VIDEO_MEDIA_TYPE_ID,
         username,
         commentId: _id,
       });
     },
-    disliked: async ({ _id, username }, args, context, info) => {
+    disliked: async ({ _id }, args, { req: { username } }, info) => {
       return await DB.CommentDislike.exists({
         mediaType: VIDEO_MEDIA_TYPE_ID,
         username,
