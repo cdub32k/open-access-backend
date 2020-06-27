@@ -49,22 +49,27 @@
         }
 
         var p = document.querySelector(".react-player__preview");
-        if (p) p.click();
-        document.documentElement.scrollTop = 0;
-
-        setTimeout(function () {
-          var v = document.querySelector("video");
-          v.play();
-          if (v.readyState >= 3) v.currentTime = convert2Seconds(h, m, s);
-          else
-            v.addEventListener(
-              "loadedmetadata",
-              function () {
-                this.currentTime = convert2Seconds(h, m, s);
-              },
-              false
-            );
-        }, 0);
+        if (p) {
+          p.click();
+          var v;
+          function getV() {
+            v = document.querySelector("video");
+            if (v) {
+              clearInterval(vTries);
+              function setV() {
+                v.currentTime = convert2Seconds(h, m, s);
+                v.removeEventListener("loadeddata", setV);
+              }
+              document.documentElement.scrollTop = 0;
+              if (v.readyState >= 3) v.currentTime = convert2Seconds(h, m, s);
+              else v.addEventListener("loadeddata", setV, false);
+            }
+          }
+          var vTries = setInterval(getV, 200);
+        } else {
+          v.currentTime = convert2Seconds(h, m, s);
+          v.play().catch((e) => {});
+        }
       }
     </script>
   <link rel="shortcut icon" href="https://open-access-dev.s3.amazonaws.com/app/favicon.ico"><link href="https://open-access-dev.s3.amazonaws.com/app/bundle.css" rel="stylesheet"></head>
@@ -85,5 +90,5 @@
       Questions or Comments? Email
       <b style="color: #7fb069;">openaccess@usa.com</b>
     </footer>
-  <script type="text/javascript" src="https://open-access-dev.s3.amazonaws.com/app/main.57722b934564c15c658f.bundle.js"></script></body>
+  <script type="text/javascript" src="https://open-access-dev.s3.amazonaws.com/app/main.fc2a61b51057a185032d.bundle.js"></script></body>
 </html>
