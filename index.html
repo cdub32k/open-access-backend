@@ -54,8 +54,16 @@
 
         setTimeout(function () {
           var v = document.querySelector("video");
-          v.currentTime = convert2Seconds(h, m, s);
           v.play();
+          if (v.readyState >= 3) v.currentTime = convert2Seconds(h, m, s);
+          else
+            v.addEventListener(
+              "loadedmetadata",
+              function () {
+                this.currentTime = convert2Seconds(h, m, s);
+              },
+              false
+            );
         }, 0);
       }
     </script>
@@ -77,5 +85,5 @@
       Questions or Comments? Email
       <b style="color: #7fb069;">openaccess@usa.com</b>
     </footer>
-  <script type="text/javascript" src="https://open-access-dev.s3.amazonaws.com/app/main.f882c2a51eeb6c9adf66.bundle.js"></script></body>
+  <script type="text/javascript" src="https://open-access-dev.s3.amazonaws.com/app/main.57722b934564c15c658f.bundle.js"></script></body>
 </html>
