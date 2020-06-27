@@ -23,6 +23,15 @@
       }
     </style>
     <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        if (window.document.documentMode) {
+          document.body.innerHTML =
+            "<h1 style='color:red'>BROWSER NOT SUPPORTED</h1>";
+          alert(
+            "Internet Explorer is not supported by this website. Please use Chrome, Firefox, Safari, or Microsoft Edge."
+          );
+        }
+      });
       function convert2Seconds(h, m, s) {
         let total = 0;
         if (h) total += h * 60 * 60;
@@ -52,7 +61,21 @@
     </script>
   <link rel="shortcut icon" href="https://open-access-dev.s3.amazonaws.com/app/favicon.ico"><link href="https://open-access-dev.s3.amazonaws.com/app/bundle.css" rel="stylesheet"></head>
 
-  <body>
+  <body style="min-height: 1200px; position: relative; padding-bottom: 200px;">
     <div id="root"></div>
-  <script type="text/javascript" src="https://open-access-dev.s3.amazonaws.com/app/main.d05e3f8b2607856607c3.bundle.js"></script></body>
+    <footer
+      style="
+        text-align: center;
+        font-size: 14px;
+        margin-top: 200px;
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+      "
+    >
+      Questions or Comments? Email
+      <b style="color: #7fb069;">openaccess@usa.com</b>
+    </footer>
+  <script type="text/javascript" src="https://open-access-dev.s3.amazonaws.com/app/main.268d1318804a0d876269.bundle.js"></script></body>
 </html>
