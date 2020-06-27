@@ -67,12 +67,12 @@ router.post("/upload", upload, async (req, res) => {
       Body: await img
         .png({
           progressive: true,
-          compressionLevel: 6,
+          compressionLevel: 8,
           adaptiveFiltering: true,
         })
         .jpeg({
           progressive: true,
-          compressionLevel: 6,
+          compressionLevel: 8,
           adaptiveFiltering: true,
         })
         .toBuffer(),
@@ -164,12 +164,12 @@ router.post("/profile/upload", profUpload, async (req, res) => {
       Body: await img
         .png({
           progressive: true,
-          compressionLevel: 6,
+          compressionLevel: 8,
           adaptiveFiltering: true,
         })
         .jpeg({
           progressive: true,
-          compressionLevel: 6,
+          compressionLevel: 8,
           adaptiveFiltering: true,
         })
         .toBuffer(),
@@ -181,12 +181,12 @@ router.post("/profile/upload", profUpload, async (req, res) => {
       Body: await small
         .png({
           progressive: true,
-          compressionLevel: 6,
+          compressionLevel: 8,
           adaptiveFiltering: true,
         })
         .jpeg({
           progressive: true,
-          compressionLevel: 6,
+          compressionLevel: 8,
           adaptiveFiltering: true,
         })
         .toBuffer(),

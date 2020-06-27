@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "compress": "babel-node compress.js",
     "serve": "NODE_ENV=development nodemon --exec babel-node src/server.js",
     "seed:db": "babel-node jobs/seed_db.js",
     "start": "NODE_ENV=production node build/server.js",

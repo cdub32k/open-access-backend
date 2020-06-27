@@ -76,7 +76,7 @@ router.post("/sign-s3", async (req, res) => {
   });
 });
 
-router.post("/login", async (req, res) => {
+router.post("/sign-in", async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username }).lean();

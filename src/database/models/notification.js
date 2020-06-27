@@ -45,8 +45,7 @@ notificationSchema.pre("save", function (done) {
 notificationSchema.index(
   { readAt: 1 },
   {
-    //expireAfterSeconds: 24 * 60 * 60 * 3,
-    expireAfterSeconds: 60,
+    expireAfterSeconds: 24 * 60 * 60 * 3,
     partialFilterExpression: { read: true },
   }
 );
