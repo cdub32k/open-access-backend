@@ -180,7 +180,7 @@ const resolvers = {
         });
       if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
 
-      const totalCount = await DB.Media.find(criteria).countDocuments();
+      const videoCount = await DB.Media.find(criteria).limit(100).countDocuments();
       const videos = await DB.Media.find(criteria)
         .sort({
           uploadedAt: -1,
@@ -204,7 +204,10 @@ const resolvers = {
 
       return {
         videos,
-        hasMore: totalCount > page * perPage + perPage,
+        videoCount,
+        query,
+        hashtag,
+        hasMore: videoCount > page * perPage + perPage,
       };
     },
     imageSearch: async (
@@ -518,6 +521,40 @@ const resolvers = {
         })
         .lean();
       return replies;
+    },
+  },
+  VideoSearchResponse: {
+    imageCount: async ({ query, hashtag }) => {
+      const criteria = { mediaType: IMAGE_MEDIA_TYPE_ID };
+      if (query || hashtag) criteria.$or = [];
+      else return 0;
+
+      if (query)
+        criteria.$or.push({
+          title: convertQueryToRegex(query),
+        });
+      if (hashtag)
+        criteria.$or.push({
+          hashtags: { $in: hashtag.toLowerCase().split(",") },
+        });
+
+      return await DB.Media.find(criteria).limit(100).countDocuments();
+    },
+    noteCount: async ({ query, hashtag }) => {
+      const criteria = { mediaType: NOTE_MEDIA_TYPE_ID };
+      if (query || hashtag) criteria.$or = [];
+      else return 0;
+
+      if (query)
+        criteria.$or.push({
+          caption: convertQueryToRegex(query),
+        });
+      if (hashtag)
+        criteria.$or.push({
+          hashtags: { $in: hashtag.toLowerCase().split(",") },
+        });
+
+      return await DB.Media.find(criteria).limit(100).countDocuments();
     },
   },
   AnyComment: {

@@ -69,7 +69,12 @@ const typeDefs = gql`
   union AnyDislike = VideoDislike | ImageDislike | NoteDislike
 
   type VideoSearchResponse {
+    query: String
+    hashtag: String
     videos: [Video]
+    videoCount: Int
+    imageCount: Int
+    noteCount: Int
     hasMore: Boolean
   }
   type ImageSearchResponse {
