@@ -21,6 +21,34 @@
       ::-webkit-scrollbar-thumb {
         background: #eee;
       }
+
+      footer {
+        text-align: center;
+        font-size: 13px;
+        margin-top: 200px;
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      footer div {
+        flex-basis: 100%;
+        margin-bottom: 6px;
+      }
+
+      footer ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        display: flex;
+        justify-content: space-around;
+        width: 245px;
+      }
     </style>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -76,19 +104,18 @@
 
   <body style="min-height: 1200px; position: relative; padding-bottom: 200px;">
     <div id="root"></div>
-    <footer
-      style="
-        text-align: center;
-        font-size: 14px;
-        margin-top: 200px;
-        position: absolute;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%);
-      "
-    >
-      Questions or Comments? Email
-      <b style="color: #7fb069;">openaccess@usa.com</b>
+    <footer>
+      <div>
+        Questions or Comments? Email
+        <b style="color: #7fb069;">openaccess@usa.com</b>
+      </div>
+      <ul
+        style="list-style-type: none; margin: 0; padding: 0; overflow: hidden;"
+      >
+        <li><a nativelink href="/terms">Terms of Service</a></li>
+        <li>|</li>
+        <li><a nativelink href="/pp">Privacy Policy</a></li>
+      </ul>
     </footer>
-  <script type="text/javascript" src="https://open-access-dev.s3.amazonaws.com/app/main.fc2a61b51057a185032d.bundle.js"></script></body>
+  <script type="text/javascript" src="https://open-access-dev.s3.amazonaws.com/app/main.301fa75b38ec71b13242.bundle.js"></script></body>
 </html>
