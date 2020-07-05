@@ -77,9 +77,9 @@
         }
 
         var p = document.querySelector(".react-player__preview");
+        var v;
         if (p) {
           p.click();
-          var v;
           function getV() {
             v = document.querySelector("video");
             if (v) {
@@ -95,6 +95,7 @@
           }
           var vTries = setInterval(getV, 200);
         } else {
+          v = document.querySelector("video");
           v.currentTime = convert2Seconds(h, m, s);
           v.play().catch((e) => {});
         }
@@ -117,5 +118,5 @@
         <li><a data-nativelink href="/pp">Privacy Policy</a></li>
       </ul>
     </footer>
-  <script type="text/javascript" src="https://open-access-dev.s3.amazonaws.com/app/main.5d37c04bf0fc16df672b.bundle.js"></script></body>
+  <script type="text/javascript" src="https://open-access-dev.s3.amazonaws.com/app/main.f99312d2e462c536fa17.bundle.js"></script></body>
 </html>
