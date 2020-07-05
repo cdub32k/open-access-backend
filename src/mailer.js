@@ -3,8 +3,7 @@ dotenv.config();
 
 import dayjs from "dayjs";
 
-import sgMail from "@sendgrid/mail";
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+import emailQueue from "./queues/email";
 
 export class Mailer {
   static welcome(recipient) {
@@ -17,9 +16,12 @@ export class Mailer {
       html: `Good times ahead! Here is a link to your profile: <a href="${process.env.SITE_HOST}/profile/${recipient.username}">${recipient.username}'s profile</a>`,
     };
 
-    sgMail
-      .send(msg)
-      .catch((e) => console.log(`failed to send email to ${username}:`, e));
+    const options = {
+      attempts: 2,
+      removeOnComplete: true,
+    };
+
+    emailQueue.add(msg, options);
   }
 
   static paymentReceipt(recipient, payment) {
@@ -68,9 +70,12 @@ export class Mailer {
       };
     }
 
-    sgMail
-      .send(msg)
-      .catch((e) => console.log(`failed to send email to ${username}:`, e));
+    const options = {
+      attempts: 2,
+      removeOnComplete: true,
+    };
+
+    emailQueue.add(msg, options);
   }
 
   static unsubscribed(recipient) {
@@ -92,12 +97,15 @@ export class Mailer {
       ).format("MM/DD/YYYY")}.<br/>Thank you,<br/>-Team`,
     };
 
-    sgMail
-      .send(msg)
-      .catch((e) => console.log(`failed to send email to ${username}:`, e));
+    const options = {
+      attempts: 2,
+      removeOnComplete: true,
+    };
+
+    emailQueue.add(msg, options);
   }
 
-  static forgotPassword(recipient) {
+  static async forgotPassword(recipient) {
     const { email, tempKey } = recipient;
     const msg = {
       to: email,
@@ -107,8 +115,11 @@ export class Mailer {
       html: `Click this link to reset password: <a href="${process.env.SITE_HOST}/password-reset/${tempKey}">reset</a>`,
     };
 
-    sgMail
-      .send(msg)
-      .catch((e) => console.log(`failed to send email to ${username}:`, e));
+    const options = {
+      attempts: 2,
+      removeOnComplete: true,
+    };
+
+    await emailQueue.add(msg, options);
   }
 }

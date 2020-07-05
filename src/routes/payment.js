@@ -52,9 +52,7 @@ router.post("/process-payment", async (req, res) => {
       user.activeUntil = null;
       await user.save();
 
-      if (process.env.NODE_ENV == "production") {
-        Mailer.paymentReceipt(user, sub);
-      }
+      await Mailer.paymentReceipt(user, sub);
 
       return res.send({
         subscription: { _id: sub._id },
@@ -86,9 +84,7 @@ router.post("/process-payment", async (req, res) => {
       user.activeUntil = new Date(start.setMonth(start.getMonth() + 1));
       await user.save();
 
-      if (process.env.NODE_ENV == "production") {
-        Mailer.paymentReceipt(user, charge);
-      }
+      await Mailer.paymentReceipt(user, charge);
 
       return res.send({ charge: { _id: charge._id } });
     }
@@ -123,9 +119,7 @@ router.delete("/subscription", async (req, res) => {
 
     await user.save();
 
-    if (process.env.NODE_ENV == "production") {
-      Mailer.unsubscribed(user, sub);
-    }
+    await Mailer.unsubscribed(user, sub);
 
     return res.status(200).send(true);
   } catch (e) {

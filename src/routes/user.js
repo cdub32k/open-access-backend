@@ -5,6 +5,8 @@ const { User } = require("../database");
 
 const router = require("express").Router();
 
+import deleteUserQueue from "../queues/deleteUser";
+
 router.put("/", async (req, res) => {
   try {
     let user = await User.findOne({ username: req.username });
@@ -26,6 +28,18 @@ router.put("/", async (req, res) => {
   }
 });
 
-router.post("");
+router.delete("/", async (req, res) => {
+  try {
+    const options = {
+      attempts: 2,
+      removeOnComplete: true,
+    };
+    await deleteUserQueue.add({ username: req.username }, options);
+
+    return res.status(200).send(true);
+  } catch (e) {
+    return res.status(500).send(e);
+  }
+});
 
 export default router;

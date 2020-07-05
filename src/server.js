@@ -63,6 +63,16 @@ const verifyTokenMiddleware = (req, res, next) => {
 
       const { username } = jwt.decode(refreshToken);
       let user = await User.findOne({ username }).lean();
+
+      if (
+        user.active &&
+        user.activeUntil &&
+        new Date(user.activeUntil) < new Date()
+      ) {
+        user.active = false;
+        await User.updateOne({ _id: user._id }, { active: false });
+      }
+
       jwt.verify(
         refreshToken,
         process.env.JWT_REFRESH_SECRET + user.passwordHash,
@@ -87,6 +97,7 @@ const verifyTokenMiddleware = (req, res, next) => {
           res.set("x-token", token);
           res.set("x-refresh-token", refreshToken);
           req.authorized = true;
+          req.active = user.active;
           req.username = username;
           req.email = user.email;
           return next();
@@ -94,6 +105,7 @@ const verifyTokenMiddleware = (req, res, next) => {
       );
     } else {
       req.authorized = true;
+      req.active = decoded.active;
       req.username = decoded.username;
       req.email = decoded.email;
       return next();

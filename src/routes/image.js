@@ -225,35 +225,45 @@ router.put("/comments/:id", async (req, res) => {
   }
 });
 
+export async function deleteImageComment(id) {
+  const iComment = await Comment.findOne({
+    _id: id,
+    mediaType: IMAGE_MEDIA_TYPE_ID,
+  });
+  let image = await Media.findOne({
+    _id: iComment.imageId,
+    mediaType: IMAGE_MEDIA_TYPE_ID,
+  });
+  let totalDecr = 1;
+  if (iComment) {
+    if (iComment.replyId) {
+      const rComment = await Comment.findOne({
+        _id: iComment.replyId,
+        mediaType: IMAGE_MEDIA_TYPE_ID,
+      });
+      rComment.replyCount--;
+      await rComment.save();
+    }
+
+    totalDecr += await deleteReplies(Comment, iComment, image);
+
+    await Promise.all([
+      iComment.delete(),
+      CommentLike.deleteMany({ commentId: id }),
+      CommentDislike.deleteMany({ commentId: id }),
+    ]);
+  }
+  image.update({ $inc: { commentCount: -totalDecr } });
+
+  return image.commentCount - totalDecr;
+}
+
 router.delete("/comments/:id", async (req, res) => {
   try {
-    const iComment = await Comment.findOne({
-      _id: req.params.id,
-      mediaType: IMAGE_MEDIA_TYPE_ID,
-    });
-    let image = await Media.findOne({
-      _id: iComment.imageId,
-      mediaType: IMAGE_MEDIA_TYPE_ID,
-    });
-    let totalDecr = 1;
-    if (iComment) {
-      if (iComment.replyId) {
-        const rComment = await Comment.findOne({
-          _id: iComment.replyId,
-          mediaType: IMAGE_MEDIA_TYPE_ID,
-        });
-        rComment.replyCount--;
-        await rComment.save();
-      }
+    let commentCount = await deleteImageComment(req.params.id);
 
-      totalDecr += await deleteReplies(Comment, iComment, image);
-
-      await iComment.delete();
-    }
-    image.update({ $inc: { commentCount: -totalDecr } });
     return res.status(200).send({
-      createdAt: image.createdAt,
-      commentCount: image.commentCount - totalDecr,
+      commentCount,
     });
   } catch (e) {
     res.status(500).send({ error: "Something went wrong" });
@@ -281,44 +291,48 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+export async function deleteImage(id) {
+  const image = await Media.findOne({
+    _id: id,
+    mediaType: IMAGE_MEDIA_TYPE_ID,
+  });
+
+  let s3Params = {
+    Bucket: S3_BUCKET,
+    Key: `${image.url.substring(
+      image.url.indexOf("s3.amazonaws.com/") + "s3.amazonaws.com/".length
+    )}`,
+  };
+
+  await Promise.all([
+    s3.deleteObject(s3Params).promise(),
+    Like.deleteMany({
+      mediaId: image._id,
+      mediaType: IMAGE_MEDIA_TYPE_ID,
+    }),
+    Dislike.deleteMany({
+      mediaId: image._id,
+      mediaType: IMAGE_MEDIA_TYPE_ID,
+    }),
+    Comment.deleteMany({
+      mediaId: image._id,
+      mediaType: IMAGE_MEDIA_TYPE_ID,
+    }),
+    CommentLike.deleteMany({
+      mediaId: image._id,
+      mediaType: IMAGE_MEDIA_TYPE_ID,
+    }),
+    CommentDislike.deleteMany({
+      mediaId: image._id,
+      mediaType: IMAGE_MEDIA_TYPE_ID,
+    }),
+    image.delete(),
+  ]);
+}
+
 router.delete("/:id", async (req, res) => {
   try {
-    const image = await Media.findOne({
-      _id: req.params.id,
-      mediaType: IMAGE_MEDIA_TYPE_ID,
-    });
-
-    let s3Params = {
-      Bucket: S3_BUCKET,
-      Key: `${image.url.substring(
-        image.url.indexOf("s3.amazonaws.com/") + "s3.amazonaws.com/".length
-      )}`,
-    };
-
-    await Promise.all([
-      s3.deleteObject(s3Params).promise(),
-      Like.deleteMany({
-        mediaId: image._id,
-        mediaType: IMAGE_MEDIA_TYPE_ID,
-      }),
-      Dislike.deleteMany({
-        mediaId: image._id,
-        mediaType: IMAGE_MEDIA_TYPE_ID,
-      }),
-      Comment.deleteMany({
-        mediaId: image._id,
-        mediaType: IMAGE_MEDIA_TYPE_ID,
-      }),
-      CommentLike.deleteMany({
-        mediaId: image._id,
-        mediaType: IMAGE_MEDIA_TYPE_ID,
-      }),
-      CommentDislike.deleteMany({
-        mediaId: image._id,
-        mediaType: IMAGE_MEDIA_TYPE_ID,
-      }),
-      image.delete(),
-    ]);
+    await deleteImage(req.params.id);
 
     return res.status(200).send(true);
   } catch (e) {

@@ -53,6 +53,7 @@ const typeDefs = gql`
     videos: [Video]
     charges: [Charge]
     subscriptions: [MoSub]
+    nextBillDate: Date
     comments: [AnyComment]
     videoCount: Int
     imageCount: Int

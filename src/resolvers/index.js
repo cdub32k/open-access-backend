@@ -1,4 +1,5 @@
 import DB from "../database";
+const stripe = require("stripe")(process.env.STRIPE_SK);
 
 const perPage = 4;
 
@@ -18,10 +19,12 @@ import { parseHashtags, convertQueryToRegex } from "../utils/helpers";
 
 const resolvers = {
   Query: {
-    user: async (parent, { username }, { req: { authorized } }, info) => {
-      if (!authorized) return null;
+    user: async (parent, { username }, { req }, info) => {
+      if (!req.authorized) return null;
 
-      const user = await DB.User.findOne({ username });
+      if (!req.active && req.username != username) return null;
+
+      const user = await DB.User.findOne({ username }).lean();
 
       if (
         user.active &&
@@ -29,13 +32,13 @@ const resolvers = {
         new Date(user.activeUntil) < new Date()
       ) {
         user.active = false;
-        await user.save();
+        await User.updateOne({ _id: user._id }, { active: false });
       }
 
       return user;
     },
-    users: async (parent, args, { req: { authorized } }, info) => {
-      if (!authorized) return null;
+    users: async (parent, args, { req: { authorized, active } }, info) => {
+      if (!authorized || !active) return null;
 
       const users = await DB.User.find().lean();
 
@@ -44,9 +47,11 @@ const resolvers = {
     video: async (
       parent,
       { id, cId },
-      { req: { username, authorized } },
+      { req: { username, authorized, active } },
       info
     ) => {
+      if (!authorized || !active) return null;
+
       const video = await DB.Media.findOne({
         _id: id,
         mediaType: VIDEO_MEDIA_TYPE_ID,
@@ -103,10 +108,10 @@ const resolvers = {
     commentsSearch: async (
       parent,
       { username, page },
-      { req: { authorized } },
+      { req: { authorized, active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
       if (!page) page = 0;
 
       let comms = await DB.Comment.find({ username })
@@ -122,10 +127,10 @@ const resolvers = {
     likesSearch: async (
       parent,
       { username, page },
-      { req: { authorized } },
+      { req: { authorized, active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
       if (!page) page = 0;
 
       let likes = await DB.Like.find({ username })
@@ -141,10 +146,10 @@ const resolvers = {
     dislikesSearch: async (
       parent,
       { username, page },
-      { req: { authorized } },
+      { req: { authorized, active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
       if (!page) page = 0;
 
       let dislikes = await DB.Dislike.find({ username })
@@ -160,10 +165,10 @@ const resolvers = {
     videoSearch: async (
       parent,
       { username, query, hashtag, page, lastOldest },
-      { req: { authorized } },
+      { req: { authorized, active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       const criteria = { mediaType: VIDEO_MEDIA_TYPE_ID };
       if (!page) page = 0;
@@ -180,7 +185,9 @@ const resolvers = {
         });
       if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
 
-      const videoCount = await DB.Media.find(criteria).limit(100).countDocuments();
+      const videoCount = await DB.Media.find(criteria)
+        .limit(100)
+        .countDocuments();
       const videos = await DB.Media.find(criteria)
         .sort({
           uploadedAt: -1,
@@ -213,10 +220,10 @@ const resolvers = {
     imageSearch: async (
       parent,
       { username, query, hashtag, page, lastOldest },
-      { req: { authorized } },
+      { req: { authorized, active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       const criteria = { mediaType: IMAGE_MEDIA_TYPE_ID };
       if (!page) page = 0;
@@ -260,10 +267,10 @@ const resolvers = {
     noteSearch: async (
       parent,
       { username, query, hashtag, page, lastOldest },
-      { req: { authorized } },
+      { req: { authorized, active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       const criteria = { mediaType: NOTE_MEDIA_TYPE_ID };
       if (!page) page = 0;
@@ -306,10 +313,10 @@ const resolvers = {
     image: async (
       parent,
       { id, cId },
-      { req: { username, authorized } },
+      { req: { username, authorized, active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       const image = await DB.Media.findOne({
         _id: id,
@@ -369,10 +376,10 @@ const resolvers = {
     note: async (
       parent,
       { id, cId },
-      { req: { username, authorized } },
+      { req: { username, authorized, active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       const note = await DB.Media.findOne({
         _id: id,
@@ -431,10 +438,10 @@ const resolvers = {
     newsfeedVideos: async (
       parent,
       { lastOldest },
-      { req: { username, authorized } },
+      { req: { username, authorized, active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       const criteria = { mediaType: VIDEO_MEDIA_TYPE_ID };
       if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
@@ -451,10 +458,10 @@ const resolvers = {
     newsfeedImages: async (
       parent,
       { lastOldest },
-      { req: { username, authorized } },
+      { req: { username, authorized, active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       const criteria = { mediaType: IMAGE_MEDIA_TYPE_ID };
       if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
@@ -471,10 +478,10 @@ const resolvers = {
     newsfeedNotes: async (
       parent,
       { lastOldest },
-      { req: { username, authorized } },
+      { req: { username, authorized, active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       const criteria = { mediaType: NOTE_MEDIA_TYPE_ID };
       if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
@@ -637,10 +644,10 @@ const resolvers = {
     postNote: async (
       parent,
       { caption },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       let hashtags = parseHashtags(caption);
 
@@ -664,10 +671,10 @@ const resolvers = {
     likeNote: async (
       parent,
       { id },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const liked = await DB.Like.exists({
@@ -734,10 +741,10 @@ const resolvers = {
     dislikeNote: async (
       parent,
       { id },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const disliked = await DB.Dislike.exists({
@@ -805,10 +812,10 @@ const resolvers = {
     commentNote: async (
       parent,
       { id, body, replyId },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const comment = await DB.Comment.create({
@@ -878,10 +885,10 @@ const resolvers = {
     likeImage: async (
       parent,
       { id },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const liked = await DB.Like.exists({
@@ -948,10 +955,10 @@ const resolvers = {
     dislikeImage: async (
       parent,
       { id },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const disliked = await DB.Dislike.exists({
@@ -1019,10 +1026,10 @@ const resolvers = {
     commentImage: async (
       parent,
       { id, body, replyId },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const comment = await DB.Comment.create({
@@ -1092,10 +1099,10 @@ const resolvers = {
     likeVideo: async (
       parent,
       { id },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const liked = await DB.Like.exists({
@@ -1162,10 +1169,10 @@ const resolvers = {
     dislikeVideo: async (
       parent,
       { id },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const disliked = await DB.Dislike.exists({
@@ -1233,10 +1240,10 @@ const resolvers = {
     viewVideo: async (
       parent,
       { id },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const viewed = await DB.View.exists({
@@ -1276,10 +1283,10 @@ const resolvers = {
     commentVideo: async (
       parent,
       { id, body, replyId },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const comment = await DB.Comment.create({
@@ -1349,10 +1356,10 @@ const resolvers = {
     likeVideoComment: async (
       parent,
       { videoId, commentId },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const liked = await DB.CommentLike.exists({
@@ -1398,10 +1405,10 @@ const resolvers = {
     dislikeVideoComment: async (
       parent,
       { videoId, commentId },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const disliked = await DB.CommentDislike.exists({
@@ -1449,10 +1456,10 @@ const resolvers = {
     likeNoteComment: async (
       parent,
       { noteId, commentId },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const liked = await DB.CommentLike.exists({
@@ -1493,10 +1500,10 @@ const resolvers = {
     dislikeNoteComment: async (
       parent,
       { noteId, commentId },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const disliked = await DB.CommentDislike.exists({
@@ -1544,10 +1551,10 @@ const resolvers = {
     likeImageComment: async (
       parent,
       { imageId, commentId },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const liked = await DB.CommentLike.exists({
@@ -1593,10 +1600,10 @@ const resolvers = {
     dislikeImageComment: async (
       parent,
       { imageId, commentId },
-      { req: { username, authorized }, pubsub },
+      { req: { username, authorized, active }, pubsub },
       info
     ) => {
-      if (!authorized) return null;
+      if (!authorized || !active) return null;
 
       try {
         const disliked = await DB.CommentDislike.exists({
@@ -1905,26 +1912,18 @@ const resolvers = {
     },
   },
   UserResponse: {
-    likeCount: async ({ username }, args, { req: { authorized }, pubsub }) => {
-      if (!authorized) return null;
+    likeCount: async ({ username }, args, { req: { active } }) => {
+      if (!active) return null;
 
       return await DB.Like.find({ username }).countDocuments();
     },
-    dislikeCount: async (
-      { username },
-      args,
-      { req: { authorized }, pubsub }
-    ) => {
-      if (!authorized) return null;
+    dislikeCount: async ({ username }, args, { req: { active } }) => {
+      if (!active) return null;
 
       return await DB.Dislike.find({ username }).countDocuments();
     },
-    likes: async (
-      { username, likePage },
-      args,
-      { req: { authorized }, pubsub }
-    ) => {
-      if (!authorized) return null;
+    likes: async ({ username, likePage }, args, { req: { active } }) => {
+      if (!active) return null;
 
       if (!likePage) likePage = 0;
 
@@ -1934,12 +1933,8 @@ const resolvers = {
         .limit(perPage)
         .lean();
     },
-    dislikes: async (
-      { username, dislikePage },
-      args,
-      { req: { authorized }, pubsub }
-    ) => {
-      if (!authorized) return null;
+    dislikes: async ({ username, dislikePage }, args, { req: { active } }) => {
+      if (!active) return null;
 
       if (!dislikePage) dislikePage = 0;
 
@@ -1952,10 +1947,10 @@ const resolvers = {
     notifications: async (
       parent,
       args,
-      { req: { username, authorized } },
+      { req: { username, active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!active) return [];
 
       const notifications = await DB.Notification.find({
         receiver: username,
@@ -1970,10 +1965,10 @@ const resolvers = {
     comments: async (
       { username, commentPage },
       args,
-      { req: { authorized } },
+      { req: { active } },
       info
     ) => {
-      if (!authorized) return null;
+      if (!active) return null;
 
       if (!commentPage) commentPage = 0;
 
@@ -1983,42 +1978,37 @@ const resolvers = {
         .limit(perPage)
         .lean();
     },
-    commentCount: async ({ username }, args, { req: { authorized } }, info) => {
-      if (!authorized) return null;
+    commentCount: async ({ username }, args, { req: { active } }, info) => {
+      if (!active) return null;
 
       return await DB.Comment.find({ username }).countDocuments();
     },
-    videoCount: async ({ username }, args, { req: { authorized } }, info) => {
-      if (!authorized) return null;
+    videoCount: async ({ username }, args, { req: { active } }, info) => {
+      if (!active) return null;
 
       return await DB.Media.find({
         username,
         mediaType: VIDEO_MEDIA_TYPE_ID,
       }).countDocuments();
     },
-    imageCount: async ({ username }, args, { req: { authorized } }, info) => {
-      if (!authorized) return null;
+    imageCount: async ({ username }, args, { req: { active } }, info) => {
+      if (!active) return null;
 
       return await DB.Media.find({
         username,
         mediaType: IMAGE_MEDIA_TYPE_ID,
       }).countDocuments();
     },
-    noteCount: async ({ username }, args, { req: { authorized } }, info) => {
-      if (!authorized) return null;
+    noteCount: async ({ username }, args, { req: { active } }, info) => {
+      if (!active) return null;
 
       return await DB.Media.find({
         username,
         mediaType: NOTE_MEDIA_TYPE_ID,
       }).countDocuments();
     },
-    notes: async (
-      { username, notePage },
-      args,
-      { req: { authorized } },
-      info
-    ) => {
-      if (!authorized) return null;
+    notes: async ({ username, notePage }, args, { req: { active } }, info) => {
+      if (!active) return null;
 
       if (!notePage) notePage = 0;
 
@@ -2044,13 +2034,8 @@ const resolvers = {
 
       return notes;
     },
-    images: async (
-      { username, imgPage },
-      args,
-      { req: { authorized } },
-      info
-    ) => {
-      if (!authorized) return null;
+    images: async ({ username, imgPage }, args, { req: { active } }, info) => {
+      if (!active) return null;
 
       if (!imgPage) imgPage = 0;
 
@@ -2078,13 +2063,8 @@ const resolvers = {
 
       return images;
     },
-    videos: async (
-      { username, vidPage },
-      args,
-      { req: { authorized } },
-      info
-    ) => {
-      if (!authorized) return null;
+    videos: async ({ username, vidPage }, args, { req: { active } }, info) => {
+      if (!active) return null;
 
       if (!vidPage) vidPage = 0;
 
@@ -2115,16 +2095,34 @@ const resolvers = {
       return videos;
     },
     charges: async ({ username }, args, { req: { authorized } }) => {
-      //if (!authorized) return null;
-
       const charges = await DB.Charge.find({ username }).lean();
       return charges;
     },
     subscriptions: async ({ username }, args, { req: { authorized } }) => {
-      //if (!authorized) return null;
-
       const subs = await DB.Subscription.find({ username }).lean();
       return subs;
+    },
+    nextBillDate: async ({ username, activeUntil }) => {
+      if (activeUntil) {
+        return null;
+      }
+
+      const sub = await DB.Subscription.findOne({
+        username,
+        terminated: false,
+      });
+
+      if (!sub) return null;
+
+      const subId = sub.stripeSubscriptionId;
+
+      const stripeSubObj = await stripe.subscriptions.retrieve(subId);
+
+      if (stripeSubObj.status == "trialing") {
+        return new Date(stripeSubObj.trial_end * 1000);
+      } else {
+        return new Date(stripeSubObj.current_period_end * 1000);
+      }
     },
   },
   Subscription: {

@@ -125,35 +125,45 @@ router.put("/comments/:id", async (req, res) => {
   }
 });
 
+export async function deleteVideoComment(id) {
+  const vComment = await Comment.findOne({
+    _id: id,
+    mediaType: VIDEO_MEDIA_TYPE_ID,
+  });
+  let video = await Media.findOne({
+    _id: vComment.mediaId,
+    mediaType: VIDEO_MEDIA_TYPE_ID,
+  });
+  let totalDecr = 1;
+  if (vComment) {
+    if (vComment.replyId) {
+      const rComment = await Comment.findOne({
+        _id: vComment.replyId,
+        mediaType: VIDEO_MEDIA_TYPE_ID,
+      });
+      rComment.replyCount--;
+      await rComment.save();
+    }
+
+    totalDecr += await deleteReplies(Comment, vComment, video);
+
+    await Promise.all([
+      vComment.delete(),
+      CommentLike.deleteMany({ commentId: id }),
+      CommentDislike.deleteMany({ commentId: id }),
+    ]);
+  }
+  await video.update({ $inc: { commentCount: -totalDecr } });
+
+  return video.commentCount - totalDecr;
+}
+
 router.delete("/comments/:id", async (req, res) => {
   try {
-    const vComment = await Comment.findOne({
-      _id: req.params.id,
-      mediaType: VIDEO_MEDIA_TYPE_ID,
-    });
-    let video = await Media.findOne({
-      _id: vComment.mediaId,
-      mediaType: VIDEO_MEDIA_TYPE_ID,
-    });
-    let totalDecr = 1;
-    if (vComment) {
-      if (vComment.replyId) {
-        const rComment = await Comment.findOne({
-          _id: vComment.replyId,
-          mediaType: VIDEO_MEDIA_TYPE_ID,
-        });
-        rComment.replyCount--;
-        await rComment.save();
-      }
+    let commentCount = await deleteVideoComment(req.params.id);
 
-      totalDecr += await deleteReplies(Comment, vComment, video);
-
-      await vComment.delete();
-    }
-    await video.update({ $inc: { commentCount: -totalDecr } });
     return res.status(200).send({
-      createdAt: video.createdAt,
-      commentCount: video.commentCount - totalDecr,
+      commentCount,
     });
   } catch (e) {
     res.status(500).send({ error: "Something went wrong" });
@@ -227,55 +237,60 @@ router.put("/:id", upload, async (req, res) => {
     res.status(500).send({ error: "Something went wrong" });
   }
 });
+
+export async function deleteVideo(id) {
+  const video = await Media.findOne({
+    _id: id,
+    mediaType: VIDEO_MEDIA_TYPE_ID,
+  });
+
+  let s3Params = {
+    Bucket: S3_BUCKET,
+    Key: `${video.url.substring(
+      video.url.indexOf("s3.amazonaws.com/") + "s3.amazonaws.com/".length
+    )}`,
+  };
+  let s3Params2 = {
+    Bucket: S3_BUCKET,
+    Key: `${video.thumbUrl.substring(
+      video.thumbUrl.indexOf("s3.amazonaws.com/") + "s3.amazonaws.com/".length
+    )}`,
+  };
+
+  await Promise.all([
+    s3.deleteObject(s3Params).promise(),
+    s3.deleteObject(s3Params2).promise(),
+    Like.deleteMany({
+      mediaId: video._id,
+      mediaType: VIDEO_MEDIA_TYPE_ID,
+    }),
+    Dislike.deleteMany({
+      mediaId: video._id,
+      mediaType: VIDEO_MEDIA_TYPE_ID,
+    }),
+    Comment.deleteMany({
+      mediaId: video._id,
+      mediaType: VIDEO_MEDIA_TYPE_ID,
+    }),
+    CommentLike.deleteMany({
+      mediaId: video._id,
+      mediaType: VIDEO_MEDIA_TYPE_ID,
+    }),
+    CommentDislike.deleteMany({
+      mediaId: video._id,
+      mediaType: VIDEO_MEDIA_TYPE_ID,
+    }),
+    View.deleteMany({
+      mediaId: video._id,
+      mediaType: VIDEO_MEDIA_TYPE_ID,
+    }),
+    video.delete(),
+  ]);
+}
+
 router.delete("/:id", async (req, res) => {
   try {
-    const video = await Media.findOne({
-      _id: req.params.id,
-      mediaType: VIDEO_MEDIA_TYPE_ID,
-    });
-
-    let s3Params = {
-      Bucket: S3_BUCKET,
-      Key: `${video.url.substring(
-        video.url.indexOf("s3.amazonaws.com/") + "s3.amazonaws.com/".length
-      )}`,
-    };
-    let s3Params2 = {
-      Bucket: S3_BUCKET,
-      Key: `${video.thumbUrl.substring(
-        video.thumbUrl.indexOf("s3.amazonaws.com/") + "s3.amazonaws.com/".length
-      )}`,
-    };
-
-    await Promise.all([
-      s3.deleteObject(s3Params).promise(),
-      s3.deleteObject(s3Params2).promise(),
-      Like.deleteMany({
-        mediaId: video._id,
-        mediaType: VIDEO_MEDIA_TYPE_ID,
-      }),
-      Dislike.deleteMany({
-        mediaId: video._id,
-        mediaType: VIDEO_MEDIA_TYPE_ID,
-      }),
-      Comment.deleteMany({
-        mediaId: video._id,
-        mediaType: VIDEO_MEDIA_TYPE_ID,
-      }),
-      CommentLike.deleteMany({
-        mediaId: video._id,
-        mediaType: VIDEO_MEDIA_TYPE_ID,
-      }),
-      CommentDislike.deleteMany({
-        mediaId: video._id,
-        mediaType: VIDEO_MEDIA_TYPE_ID,
-      }),
-      View.deleteMany({
-        mediaId: video._id,
-        mediaType: VIDEO_MEDIA_TYPE_ID,
-      }),
-      video.delete(),
-    ]);
+    await deleteVideo(req.params.id);
 
     return res.status(200).send(true);
   } catch (e) {

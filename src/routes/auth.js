@@ -20,16 +20,16 @@ router.post("/forgot-password", async (req, res) => {
   try {
     const { username } = req.body;
     let user = await User.findOne({ username });
-
-    let tempKey = crypto.createHash("sha256").digest("hex");
+    let size = 21;
+    let tempKey = crypto.randomBytes(size).toString("base64").slice(0, size);
     while (await User.exists({ tempKey }))
-      tempKey = crypto.createHash("sha256").digest("hex");
+      tempKey = crypto.randomBytes(size).toString("base64").slice(0, size);
 
     user.tempKey = tempKey;
     user.tempKeyIssuedAt = new Date();
     await user.save();
 
-    Mailer.forgotPassword(user);
+    await Mailer.forgotPassword(user);
 
     return res.status(200).send(true);
   } catch (err) {
@@ -86,7 +86,7 @@ router.post("/sign-in", async (req, res) => {
       return res.status(401).send({ auth: false, token: null });
 
     const token = jwt.sign(
-      { username, email: user.email },
+      { username, email: user.email, active: user.active },
       process.env.JWT_SECRET,
       {
         expiresIn: "1h",
@@ -143,9 +143,13 @@ router.post("/sign-up", async (req, res) => {
 
     if (!user) res.status(500).send({ error: "Error while creating user." });
 
-    const token = jwt.sign({ username, email }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { username, email, active: true },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     const refreshToken = jwt.sign(
       { username },
@@ -183,9 +187,7 @@ router.post("/sign-up", async (req, res) => {
         amount: 2500,
       });
 
-      if (process.env.NODE_ENV == "production") {
-        Mailer.paymentReceipt(user, sub);
-      }
+      await Mailer.paymentReceipt(user, sub);
 
       user.activeUntil = null;
     } else {
@@ -210,15 +212,11 @@ router.post("/sign-up", async (req, res) => {
       let today = new Date();
       user.activeUntil = new Date(today.setMonth(today.getMonth() + 1));
 
-      if (process.env.NODE_ENV == "production") {
-        Mailer.paymentReceipt(user, charge);
-      }
+      await Mailer.paymentReceipt(user, charge);
     }
     await user.save();
 
-    if (process.env.NODE_ENV == "production") {
-      Mailer.welcome(user);
-    }
+    await Mailer.welcome(user);
 
     return res.status(200).send({ auth: true, token, refreshToken });
   } catch (err) {

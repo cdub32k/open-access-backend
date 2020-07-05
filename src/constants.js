@@ -1,3 +1,4 @@
+export const USER_TYPE_ID = "user";
 export const VIDEO_MEDIA_TYPE_ID = "video";
 export const IMAGE_MEDIA_TYPE_ID = "image";
 export const NOTE_MEDIA_TYPE_ID = "note";
