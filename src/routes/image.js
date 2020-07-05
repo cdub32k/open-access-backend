@@ -231,7 +231,7 @@ export async function deleteImageComment(id) {
     mediaType: IMAGE_MEDIA_TYPE_ID,
   });
   let image = await Media.findOne({
-    _id: iComment.imageId,
+    _id: iComment.mediaId,
     mediaType: IMAGE_MEDIA_TYPE_ID,
   });
   let totalDecr = 1;

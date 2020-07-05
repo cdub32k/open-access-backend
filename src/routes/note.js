@@ -35,7 +35,7 @@ export async function deleteNoteComment(id) {
     mediaType: NOTE_MEDIA_TYPE_ID,
   });
   let note = await Media.findOne({
-    _id: iComment.noteId,
+    _id: iComment.mediaId,
     mediaType: NOTE_MEDIA_TYPE_ID,
   });
   let totalDecr = 1;
