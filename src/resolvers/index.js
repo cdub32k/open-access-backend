@@ -170,43 +170,48 @@ const resolvers = {
     ) => {
       if (!authorized || !active) return null;
 
-      const criteria = { mediaType: VIDEO_MEDIA_TYPE_ID };
+      const criteria = {
+        mediaType: VIDEO_MEDIA_TYPE_ID,
+      };
+      let $sort = { uploadedAt: -1 };
+      let $select = {
+        likeCount: 1,
+        dislikeCount: 1,
+        commentCount: 1,
+        username: 1,
+        url: 1,
+        thumbUrl: 1,
+        title: 1,
+        caption: 1,
+        viewCount: 1,
+        uploadedAt: 1,
+        _id: 1,
+      };
       if (!page) page = 0;
       if (username) criteria.username = username;
       if (query || hashtag) criteria.$or = [];
 
-      if (query)
-        criteria.$or.push({
-          title: convertQueryToRegex(query),
-        });
       if (hashtag)
         criteria.$or.push({
           hashtags: { $in: hashtag.toLowerCase().split(",") },
         });
+      if (query) {
+        criteria.$or.push({
+          $text: { $search: query },
+        });
+        $sort = { score: { $meta: "textScore" }, ...$sort };
+        $select.score = { $meta: "textScore" };
+      }
       if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
 
       const videoCount = await DB.Media.find(criteria)
         .limit(100)
         .countDocuments();
       const videos = await DB.Media.find(criteria)
-        .sort({
-          uploadedAt: -1,
-        })
+        .select($select)
+        .sort($sort)
         .skip(page * perPage)
         .limit(perPage)
-        .select({
-          likeCount: 1,
-          dislikeCount: 1,
-          commentCount: 1,
-          username: 1,
-          url: 1,
-          thumbUrl: 1,
-          title: 1,
-          caption: 1,
-          viewCount: 1,
-          uploadedAt: 1,
-          _id: 1,
-        })
         .lean();
 
       return {
@@ -226,37 +231,40 @@ const resolvers = {
       if (!authorized || !active) return null;
 
       const criteria = { mediaType: IMAGE_MEDIA_TYPE_ID };
+      let $sort = { uploadedAt: -1 };
+      let $select = {
+        likeCount: 1,
+        dislikeCount: 1,
+        commentCount: 1,
+        username: 1,
+        url: 1,
+        title: 1,
+        caption: 1,
+        uploadedAt: 1,
+        _id: 1,
+      };
       if (!page) page = 0;
       if (username) criteria.username = username;
       if (query || hashtag) criteria.$or = [];
-      if (query)
-        criteria.$or.push({
-          title: convertQueryToRegex(query),
-        });
       if (hashtag)
         criteria.$or.push({
           hashtags: { $in: hashtag.toLowerCase().split(",") },
         });
+      if (query) {
+        criteria.$or.push({
+          $text: { $search: query },
+        });
+        $sort = { score: { $meta: "textScore" }, ...$sort };
+        $select.score = { $meta: "textScore" };
+      }
       if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
 
       const totalCount = await DB.Media.find(criteria).countDocuments();
       const images = await DB.Media.find(criteria)
-        .sort({
-          uploadedAt: -1,
-        })
+        .sort($sort)
         .skip(page * perPage)
         .limit(perPage)
-        .select({
-          likeCount: 1,
-          dislikeCount: 1,
-          commentCount: 1,
-          username: 1,
-          url: 1,
-          title: 1,
-          caption: 1,
-          uploadedAt: 1,
-          _id: 1,
-        })
+        .select($select)
         .lean();
 
       return {
@@ -273,35 +281,38 @@ const resolvers = {
       if (!authorized || !active) return null;
 
       const criteria = { mediaType: NOTE_MEDIA_TYPE_ID };
+      let $sort = { uploadedAt: -1 };
+      let $select = {
+        likeCount: 1,
+        dislikeCount: 1,
+        commentCount: 1,
+        username: 1,
+        caption: 1,
+        uploadedAt: 1,
+        _id: 1,
+      };
       if (!page) page = 0;
       if (username) criteria.username = username;
       if (query || hashtag) criteria.$or = [];
-      if (query)
-        criteria.$or.push({
-          caption: convertQueryToRegex(query),
-        });
       if (hashtag)
         criteria.$or.push({
           hashtags: { $in: hashtag.toLowerCase().split(",") },
         });
+      if (query) {
+        criteria.$or.push({
+          $text: { $search: query },
+        });
+        $sort = { score: { $meta: "textScore" }, ...$sort };
+        $select.score = { $meta: "textScore" };
+      }
       if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
 
       const totalCount = await DB.Media.find(criteria).countDocuments();
       const notes = await DB.Media.find(criteria)
-        .sort({
-          uploadedAt: -1,
-        })
+        .sort($sort)
         .skip(page * perPage)
         .limit(perPage)
-        .select({
-          likeCount: 1,
-          dislikeCount: 1,
-          commentCount: 1,
-          username: 1,
-          caption: 1,
-          uploadedAt: 1,
-          _id: 1,
-        })
+        .select($select)
         .lean();
 
       return {
@@ -536,13 +547,13 @@ const resolvers = {
       if (query || hashtag) criteria.$or = [];
       else return 0;
 
-      if (query)
-        criteria.$or.push({
-          title: convertQueryToRegex(query),
-        });
       if (hashtag)
         criteria.$or.push({
           hashtags: { $in: hashtag.toLowerCase().split(",") },
+        });
+      if (query)
+        criteria.$or.push({
+          $text: { $search: query },
         });
 
       return await DB.Media.find(criteria).limit(100).countDocuments();
@@ -552,13 +563,13 @@ const resolvers = {
       if (query || hashtag) criteria.$or = [];
       else return 0;
 
-      if (query)
-        criteria.$or.push({
-          caption: convertQueryToRegex(query),
-        });
       if (hashtag)
         criteria.$or.push({
           hashtags: { $in: hashtag.toLowerCase().split(",") },
+        });
+      if (query)
+        criteria.$or.push({
+          $text: { $search: query },
         });
 
       return await DB.Media.find(criteria).limit(100).countDocuments();

@@ -69,5 +69,17 @@ mediaSchema.pre("save", async function (next) {
 mediaSchema.index({ mediaType: 1 });
 mediaSchema.index({ username: 1 });
 mediaSchema.index({ hashtags: 1 });
+mediaSchema.index(
+  {
+    title: "text",
+    caption: "text",
+  },
+  {
+    weights: {
+      title: 5,
+      caption: 1,
+    },
+  }
+);
 
 export default mongoose.model("media", mediaSchema);
