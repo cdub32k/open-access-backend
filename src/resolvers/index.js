@@ -711,7 +711,7 @@ const resolvers = {
             targetId: note._id,
             type: "like",
           });
-          if (!notified)
+          if (!notified && username != note.username)
             DB.Notification.create({
               sender: username,
               receiver: note.username,
@@ -782,7 +782,7 @@ const resolvers = {
             targetId: note._id,
             type: "dislike",
           });
-          if (!notified)
+          if (!notified && username != note.username)
             DB.Notification.create({
               sender: username,
               receiver: note.username,
@@ -844,7 +844,7 @@ const resolvers = {
         note.commentCount++;
         await note.save();
 
-        if (!replyId)
+        if (!replyId && username != note.username)
           DB.Notification.create({
             sender: username,
             receiver: note.username,
@@ -862,15 +862,16 @@ const resolvers = {
           });
           comm.replyCount++;
           await comm.save();
-          DB.Notification.create({
-            sender: username,
-            receiver: comm.username,
-            type: "reply",
-            target: "note",
-            targetId: note._id,
-            commentId: comment._id,
-            body,
-          });
+          if (username != comm.username)
+            DB.Notification.create({
+              sender: username,
+              receiver: comm.username,
+              type: "reply",
+              target: "note",
+              targetId: note._id,
+              commentId: comment._id,
+              body,
+            });
         }
 
         pubsub.publish(NEWSFEED_NOTE_SUBSCRIPTION_PREFIX + note._id, {
@@ -925,7 +926,7 @@ const resolvers = {
             targetId: image._id,
             type: "like",
           });
-          if (!notified)
+          if (!notified && username != image.username)
             DB.Notification.create({
               sender: username,
               receiver: image.username,
@@ -996,7 +997,7 @@ const resolvers = {
             targetId: image._id,
             type: "dislike",
           });
-          if (!notified)
+          if (!notified && username != image.username)
             DB.Notification.create({
               sender: username,
               receiver: image.username,
@@ -1058,7 +1059,7 @@ const resolvers = {
         image.commentCount++;
         await image.save();
 
-        if (!replyId)
+        if (!replyId && username != image.username)
           DB.Notification.create({
             sender: username,
             receiver: image.username,
@@ -1076,15 +1077,17 @@ const resolvers = {
           });
           comm.replyCount++;
           await comm.save();
-          DB.Notification.create({
-            sender: username,
-            receiver: comm.username,
-            type: "reply",
-            target: "image",
-            targetId: image._id,
-            commentId: comment._id,
-            body,
-          });
+
+          if (username != comm.username)
+            DB.Notification.create({
+              sender: username,
+              receiver: comm.username,
+              type: "reply",
+              target: "image",
+              targetId: image._id,
+              commentId: comment._id,
+              body,
+            });
         }
 
         pubsub.publish(NEWSFEED_IMAGE_SUBSCRIPTION_PREFIX + image._id, {
@@ -1139,7 +1142,7 @@ const resolvers = {
             targetId: video._id,
             type: "like",
           });
-          if (!notified)
+          if (!notified && username != video.username)
             DB.Notification.create({
               sender: username,
               receiver: video.username,
@@ -1210,7 +1213,7 @@ const resolvers = {
             targetId: video._id,
             type: "dislike",
           });
-          if (!notified)
+          if (!notified && username != video.username)
             DB.Notification.create({
               sender: username,
               receiver: video.username,
@@ -1315,7 +1318,7 @@ const resolvers = {
         video.commentCount++;
         await video.save();
 
-        if (!replyId)
+        if (!replyId && username != video.username)
           DB.Notification.create({
             sender: username,
             receiver: video.username,
@@ -1333,15 +1336,16 @@ const resolvers = {
           });
           comm.replyCount++;
           await comm.save();
-          DB.Notification.create({
-            sender: username,
-            receiver: comm.username,
-            type: "reply",
-            target: "video",
-            targetId: video._id,
-            commentId: comment._id,
-            body,
-          });
+          if (username != comm.username)
+            DB.Notification.create({
+              sender: username,
+              receiver: comm.username,
+              type: "reply",
+              target: "video",
+              targetId: video._id,
+              commentId: comment._id,
+              body,
+            });
         }
 
         pubsub.publish(NEWSFEED_VIDEO_SUBSCRIPTION_PREFIX + video._id, {

@@ -88,7 +88,7 @@ export async function converAtMentionsToLinks(
   return replaceAsync(str, /@[a-z0-9_-]{3,16}/g, async (match) => {
     let username = match.slice(1);
     if (await User.exists({ username })) {
-      if (!sentNotifs[username]) {
+      if (!sentNotifs[username] && creator != username) {
         await sendAtMentionNotification(
           creator,
           username,
