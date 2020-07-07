@@ -21,6 +21,8 @@ let mediaSchema = new mongoose.Schema(
     viewCount: { type: Number, default: 0 },
     likeCount: { type: Number, default: 0 },
     dislikeCount: { type: Number, default: 0 },
+    likeCountTrending: { type: Number, default: 0 },
+    dislikeCountTrending: { type: Number, default: 0 },
     commentCount: { type: Number, default: 0 },
     username: { type: String, required: true },
     hashtags: [String],
@@ -70,6 +72,10 @@ mediaSchema.index({ mediaType: 1 });
 mediaSchema.index({ uploadedAt: 1 });
 mediaSchema.index({ username: 1 });
 mediaSchema.index({ hashtags: 1 });
+mediaSchema.index({ likeCount: 1 });
+mediaSchema.index({ dislikeCount: 1 });
+mediaSchema.index({ likeCountTrending: 1 });
+mediaSchema.index({ dislikeCountTrending: 1 });
 mediaSchema.index(
   {
     title: "text",

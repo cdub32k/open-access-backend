@@ -7,11 +7,11 @@ const typeDefs = gql`
     #prettier-ignore
     users: [UserResponse]
     #prettier-ignore
-    videoSearch(username: String, query: String, hashtag: String, page: Int, lastOldest: Date): VideoSearchResponse
+    videoSearch(username: String, query: String, hashtag: String, page: Int, sort: Int): VideoSearchResponse
     #prettier-ignore
-    imageSearch(username: String, query: String, hashtag: String, page: Int, lastOldest: Date): ImageSearchResponse
+    imageSearch(username: String, query: String, hashtag: String, page: Int, sort: Int): ImageSearchResponse
     #prettier-ignore
-    noteSearch(username: String, query: String, hashtag: String, page: Int, lastOldest: Date): NoteSearchResponse
+    noteSearch(username: String, query: String, hashtag: String, page: Int, sort: Int): NoteSearchResponse
     #prettier-ignore
     commentsSearch(username: String, query: String, page: Int): CommentSearchResponse
     #prettier-ignore
@@ -24,9 +24,9 @@ const typeDefs = gql`
     note(id: String!, cId: String): Note
 
     notifications: [Notification]
-    newsfeedVideos(lastOldest: Date): [Video]
-    newsfeedImages(lastOldest: Date): [Image]
-    newsfeedNotes(lastOldest: Date): [Note]
+    newsfeedVideos(page: Int, sort: Int): [Video]
+    newsfeedImages(page: Int, sort: Int): [Image]
+    newsfeedNotes(page: Int, sort: Int): [Note]
 
     videoCommentReplies(commentId: String!): [VideoComment]
     imageCommentReplies(commentId: String!): [ImageComment]
@@ -266,7 +266,7 @@ const typeDefs = gql`
     uploadedAt: Date
     likes: [NoteLike]
     dislikes: [NoteDislike]
-    comments(lastOldest: Date): [NoteComment]
+    comments(page: Int, sort: Int): [NoteComment]
     liked: Boolean
     disliked: Boolean
   }
@@ -284,7 +284,7 @@ const typeDefs = gql`
     uploadedAt: Date
     likes: [ImageLike]
     dislikes: [ImageDislike]
-    comments(lastOldest: Date): [ImageComment]
+    comments(page: Int, sort: Int): [ImageComment]
     liked: Boolean
     disliked: Boolean
   }
@@ -304,7 +304,7 @@ const typeDefs = gql`
     likes: [VideoLike]
     dislikes: [VideoDislike]
     views: [VideoView]
-    comments(lastOldest: Date): [VideoComment]
+    comments(page: Int, sort: Int): [VideoComment]
     liked: Boolean
     disliked: Boolean
   }

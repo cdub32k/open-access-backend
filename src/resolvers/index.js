@@ -15,7 +15,11 @@ import {
   IMAGE_SUBSCRIPTION_PREFIX,
   NOTE_SUBSCRIPTION_PREFIX,
 } from "../constants";
-import { parseHashtags, convertQueryToRegex } from "../utils/helpers";
+import {
+  parseHashtags,
+  convertQueryToRegex,
+  getSortCriteria,
+} from "../utils/helpers";
 
 const resolvers = {
   Query: {
@@ -164,7 +168,7 @@ const resolvers = {
     },
     videoSearch: async (
       parent,
-      { username, query, hashtag, page, lastOldest },
+      { username, query, hashtag, page, sort },
       { req: { authorized, active } },
       info
     ) => {
@@ -173,7 +177,7 @@ const resolvers = {
       const criteria = {
         mediaType: VIDEO_MEDIA_TYPE_ID,
       };
-      let $sort = { uploadedAt: -1 };
+      let $sort = getSortCriteria(sort);
       let $select = {
         likeCount: 1,
         dislikeCount: 1,
@@ -202,7 +206,6 @@ const resolvers = {
         // $sort = { score: { $meta: "textScore" }, ...$sort };
         // $select.score = { $meta: "textScore" };
       }
-      if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
 
       const videoCount = await DB.Media.find(criteria)
         .limit(100)
@@ -224,14 +227,14 @@ const resolvers = {
     },
     imageSearch: async (
       parent,
-      { username, query, hashtag, page, lastOldest },
+      { username, query, hashtag, page, sort },
       { req: { authorized, active } },
       info
     ) => {
       if (!authorized || !active) return null;
 
       const criteria = { mediaType: IMAGE_MEDIA_TYPE_ID };
-      let $sort = { uploadedAt: -1 };
+      let $sort = getSortCriteria(sort);
       let $select = {
         likeCount: 1,
         dislikeCount: 1,
@@ -257,7 +260,6 @@ const resolvers = {
         // $sort = { score: { $meta: "textScore" }, ...$sort };
         // $select.score = { $meta: "textScore" };
       }
-      if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
 
       const totalCount = await DB.Media.find(criteria).countDocuments();
       const images = await DB.Media.find(criteria)
@@ -274,14 +276,14 @@ const resolvers = {
     },
     noteSearch: async (
       parent,
-      { username, query, hashtag, page, lastOldest },
+      { username, query, hashtag, page, sort },
       { req: { authorized, active } },
       info
     ) => {
       if (!authorized || !active) return null;
 
       const criteria = { mediaType: NOTE_MEDIA_TYPE_ID };
-      let $sort = { uploadedAt: -1 };
+      let $sort = getSortCriteria(sort);
       let $select = {
         likeCount: 1,
         dislikeCount: 1,
@@ -305,7 +307,6 @@ const resolvers = {
         // $sort = { score: { $meta: "textScore" }, ...$sort };
         // $select.score = { $meta: "textScore" };
       }
-      if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
 
       const totalCount = await DB.Media.find(criteria).countDocuments();
       const notes = await DB.Media.find(criteria)
@@ -448,19 +449,19 @@ const resolvers = {
 
     newsfeedVideos: async (
       parent,
-      { lastOldest },
+      { page, sort },
       { req: { username, authorized, active } },
       info
     ) => {
       if (!authorized || !active) return null;
 
       const criteria = { mediaType: VIDEO_MEDIA_TYPE_ID };
-      if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
+
+      let sortField = getSortCriteria(sort);
 
       const videos = await DB.Media.find(criteria)
-        .sort({
-          uploadedAt: -1,
-        })
+        .sort(sortField)
+        .skip(page * perPage)
         .limit(perPage)
         .lean();
 
@@ -468,19 +469,19 @@ const resolvers = {
     },
     newsfeedImages: async (
       parent,
-      { lastOldest },
+      { page, sort },
       { req: { username, authorized, active } },
       info
     ) => {
       if (!authorized || !active) return null;
 
       const criteria = { mediaType: IMAGE_MEDIA_TYPE_ID };
-      if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
+
+      let sortField = getSortCriteria(sort);
 
       const images = await DB.Media.find(criteria)
-        .sort({
-          uploadedAt: -1,
-        })
+        .sort(sortField)
+        .skip(page * perPage)
         .limit(perPage)
         .lean();
 
@@ -488,19 +489,19 @@ const resolvers = {
     },
     newsfeedNotes: async (
       parent,
-      { lastOldest },
+      { page, sort },
       { req: { username, authorized, active } },
       info
     ) => {
       if (!authorized || !active) return null;
 
       const criteria = { mediaType: NOTE_MEDIA_TYPE_ID };
-      if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
+
+      let sortField = getSortCriteria(sort);
 
       const notes = await DB.Media.find(criteria)
-        .sort({
-          uploadedAt: -1,
-        })
+        .sort(sortField)
+        .skip(page * perPage)
         .limit(perPage)
         .lean();
 
@@ -704,6 +705,7 @@ const resolvers = {
             mediaId: id,
           });
           note.likeCount++;
+          note.likeCountTrending++;
           await note.save();
 
           const notified = await DB.Notification.exists({
@@ -726,6 +728,7 @@ const resolvers = {
             mediaType: NOTE_MEDIA_TYPE_ID,
           });
           note.likeCount--;
+          note.likeCountTrending--;
           await note.save();
         }
 
@@ -775,6 +778,7 @@ const resolvers = {
             mediaId: id,
           });
           note.dislikeCount++;
+          note.dislikeCountTrending++;
           await note.save();
 
           const notified = await DB.Notification.exists({
@@ -797,6 +801,7 @@ const resolvers = {
             mediaType: NOTE_MEDIA_TYPE_ID,
           });
           note.dislikeCount--;
+          note.dislikeCountTrending--;
           await note.save();
         }
 
@@ -919,6 +924,7 @@ const resolvers = {
             mediaId: id,
           });
           image.likeCount++;
+          image.likeCountTrending++;
           await image.save();
 
           const notified = await DB.Notification.exists({
@@ -941,6 +947,7 @@ const resolvers = {
             mediaType: IMAGE_MEDIA_TYPE_ID,
           });
           image.likeCount--;
+          image.likeCountTrending--;
           await image.save();
         }
 
@@ -990,6 +997,7 @@ const resolvers = {
             mediaId: id,
           });
           image.dislikeCount++;
+          image.dislikeCountTrending++;
           await image.save();
 
           const notified = await DB.Notification.exists({
@@ -1012,6 +1020,7 @@ const resolvers = {
             mediaType: IMAGE_MEDIA_TYPE_ID,
           });
           image.dislikeCount--;
+          image.dislikeCountTrending--;
           await image.save();
         }
 
@@ -1135,6 +1144,7 @@ const resolvers = {
             mediaId: id,
           });
           video.likeCount++;
+          video.likeCountTrending++;
           await video.save();
 
           const notified = await DB.Notification.exists({
@@ -1157,6 +1167,7 @@ const resolvers = {
             mediaType: VIDEO_MEDIA_TYPE_ID,
           });
           video.likeCount--;
+          video.likeCountTrending;
           await video.save();
         }
 
@@ -1206,6 +1217,7 @@ const resolvers = {
             mediaId: id,
           });
           video.dislikeCount++;
+          video.dislikeCountTrending++;
           await video.save();
 
           const notified = await DB.Notification.exists({
@@ -1228,6 +1240,7 @@ const resolvers = {
             mediaType: VIDEO_MEDIA_TYPE_ID,
           });
           video.dislikeCount--;
+          video.dislikeCountTrending--;
           await video.save();
         }
 
@@ -1716,16 +1729,16 @@ const resolvers = {
         mediaType: NOTE_MEDIA_TYPE_ID,
       }).lean();
     },
-    comments: async ({ _id, comments }, { lastOldest }, context, info) => {
+    comments: async ({ _id, comments }, { page, sort }, context, info) => {
       if (comments) return comments;
-
+      
       const criteria = { mediaType: NOTE_MEDIA_TYPE_ID, replyId: null };
-      if (lastOldest) criteria.createdAt = { $lt: lastOldest };
+
+      let sortField = getSortCriteria(sort);
 
       const c = await DB.Comment.find({ mediaId: _id, ...criteria })
-        .sort({
-          createdAt: -1,
-        })
+        .sort(sortField)
+        .skip(page * perPage)
         .limit(perPage)
         .lean();
       return c;
@@ -1794,16 +1807,16 @@ const resolvers = {
         mediaType: IMAGE_MEDIA_TYPE_ID,
       }).lean();
     },
-    comments: async ({ _id, comments }, { lastOldest }, context, info) => {
+    comments: async ({ _id, comments }, { page, sort }, context, info) => {
       if (comments) return comments;
 
       const criteria = { mediaType: IMAGE_MEDIA_TYPE_ID, replyId: null };
-      if (lastOldest) criteria.createdAt = { $lt: lastOldest };
+
+      let sortField = getSortCriteria(sort);
 
       const c = await DB.Comment.find({ mediaId: _id, ...criteria })
-        .sort({
-          createdAt: -1,
-        })
+        .sort(sortField)
+        .skip(page * perPage)
         .limit(perPage)
         .lean();
       return c;
@@ -1882,16 +1895,16 @@ const resolvers = {
         mediaType: VIDEO_MEDIA_TYPE_ID,
       }).lean();
     },
-    comments: async ({ _id, comments }, { lastOldest }, context, info) => {
+    comments: async ({ _id, comments }, { page, sort }, context, info) => {
       if (comments) return comments;
 
       const criteria = { mediaType: VIDEO_MEDIA_TYPE_ID, replyId: null };
-      if (lastOldest) criteria.createdAt = { $lt: lastOldest };
+
+      let sortField = getSortCriteria(sort);
 
       const c = await DB.Comment.find({ mediaId: _id, ...criteria })
-        .sort({
-          createdAt: -1,
-        })
+        .sort(sortField)
+        .skip(page * perPage)
         .limit(perPage)
         .lean();
       return c;

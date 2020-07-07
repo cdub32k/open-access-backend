@@ -24,6 +24,8 @@ let commentSchema = new mongoose.Schema(
 
 commentSchema.index({ mediaType: 1 });
 commentSchema.index({ mediaId: 1 });
+commentSchema.index({ likeCount: 1 });
+commentSchema.index({ dislikeCount: 1 });
 commentSchema.index({ username: 1 });
 
 commentSchema.pre("save", async function (next) {
