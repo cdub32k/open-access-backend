@@ -64,6 +64,7 @@ export async function deleteNoteComment(id) {
 
 router.delete("/comments/:id", async (req, res) => {
   try {
+    const commentCount = deleteNoteComment(req.params.id);
     return res.status(200).send({
       commentCount,
     });

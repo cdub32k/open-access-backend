@@ -199,8 +199,8 @@ const resolvers = {
         criteria.$or.push({
           $text: { $search: query },
         });
-        $sort = { score: { $meta: "textScore" }, ...$sort };
-        $select.score = { $meta: "textScore" };
+        // $sort = { score: { $meta: "textScore" }, ...$sort };
+        // $select.score = { $meta: "textScore" };
       }
       if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
 
@@ -254,8 +254,8 @@ const resolvers = {
         criteria.$or.push({
           $text: { $search: query },
         });
-        $sort = { score: { $meta: "textScore" }, ...$sort };
-        $select.score = { $meta: "textScore" };
+        // $sort = { score: { $meta: "textScore" }, ...$sort };
+        // $select.score = { $meta: "textScore" };
       }
       if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
 
@@ -302,8 +302,8 @@ const resolvers = {
         criteria.$or.push({
           $text: { $search: query },
         });
-        $sort = { score: { $meta: "textScore" }, ...$sort };
-        $select.score = { $meta: "textScore" };
+        // $sort = { score: { $meta: "textScore" }, ...$sort };
+        // $select.score = { $meta: "textScore" };
       }
       if (lastOldest) criteria.uploadedAt = { $lt: lastOldest };
 

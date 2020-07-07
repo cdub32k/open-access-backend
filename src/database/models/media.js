@@ -67,6 +67,7 @@ mediaSchema.pre("save", async function (next) {
   }
 });
 mediaSchema.index({ mediaType: 1 });
+mediaSchema.index({ uploadedAt: 1 });
 mediaSchema.index({ username: 1 });
 mediaSchema.index({ hashtags: 1 });
 mediaSchema.index(
