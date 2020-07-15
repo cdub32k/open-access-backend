@@ -8,6 +8,7 @@
     "worker:email": "babel-node src/workers/email.js",
     "worker:delete-user": "babel-node src/workers/deleteUser.js",
     "serve": "NODE_ENV=development nodemon --exec babel-node src/server.js",
+    "serve:no-reload": "NODE_ENV=development babel-node src/server.js",
     "seed:db": "babel-node jobs/seed_db.js",
     "start": "NODE_ENV=production node build/server.js",
     "build": "rm -rf build/* && babel src --ignore node_modules --out-dir build && mv index.html build"
@@ -29,6 +30,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
+    "lorem-ipsum": "^2.0.3",
     "mongoose": "^5.8.4",
     "multer": "^1.4.2",
     "regenerator-runtime": "^0.13.5",

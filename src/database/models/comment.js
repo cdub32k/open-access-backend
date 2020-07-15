@@ -30,7 +30,13 @@ commentSchema.index({ username: 1 });
 
 commentSchema.pre("save", async function (next) {
   try {
+    if (this.isNew) {
+      if (this.body.length > 800) throw new Error("field max length exceeded");
+    }
+
     if (!this.isNew) this.body = stripLinks(this.body);
+
+    if (this.body.length > 800) throw new Error("field max length exceeded");
 
     this.body = await parseLinks(
       this.body,

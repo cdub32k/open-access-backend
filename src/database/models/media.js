@@ -33,6 +33,15 @@ let mediaSchema = new mongoose.Schema(
 mediaSchema.pre("save", async function (next) {
   try {
     if (this.isNew) {
+      if (
+        ((this.mediaType == VIDEO_MEDIA_TYPE_ID ||
+          this.mediaType == IMAGE_MEDIA_TYPE_ID) &&
+          (this.title.length > 120 || this.caption.length > 2000)) ||
+        (this.mediaType == NOTE_MEDIA_TYPE_ID && this.caption.length > 800)
+      ) {
+        throw new Error("field max length exceeded");
+      }
+
       this.caption = await parseLinks(
         this.caption,
         this.username,
@@ -45,6 +54,16 @@ mediaSchema.pre("save", async function (next) {
     }
     if (!this.isNew && this.isModified("caption")) {
       this.caption = stripLinks(this.caption);
+
+      if (
+        ((this.mediaType == VIDEO_MEDIA_TYPE_ID ||
+          this.mediaType == IMAGE_MEDIA_TYPE_ID) &&
+          (this.title.length > 120 || this.caption.length > 2000)) ||
+        (this.mediaType == NOTE_MEDIA_TYPE_ID && this.caption.length > 800)
+      ) {
+        throw new Error("field max length exceeded");
+      }
+
       this.caption = await parseLinks(
         this.caption,
         this.username,
@@ -55,14 +74,6 @@ mediaSchema.pre("save", async function (next) {
         this.caption = convertVideoTimestampsToLinks(this._id, this.caption);
     }
 
-    if (
-      ((this.mediaType == VIDEO_MEDIA_TYPE_ID ||
-        this.mediaType == IMAGE_MEDIA_TYPE_ID) &&
-        (this.title.length > 120 || this.caption.length > 2000)) ||
-      (this.mediaType == NOTE_MEDIA_TYPE_ID && this.caption.length > 800)
-    ) {
-      throw new Error("field max length exceeded");
-    }
     next();
   } catch (e) {
     next(e);
