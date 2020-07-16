@@ -1972,13 +1972,14 @@ const resolvers = {
         .limit(perPage)
         .lean();
     },
-    notifications: async (
+    notifsInfo: async (
       parent,
-      args,
+      { page },
       { req: { username, active } },
       info
     ) => {
       if (!active) return [];
+      if (!page) page = 0;
 
       const notifications = await DB.Notification.find({
         receiver: username,
@@ -1986,9 +1987,21 @@ const resolvers = {
         .sort({
           createdAt: -1,
         })
-        .limit(1000)
+        .skip(page * perPage)
+        .limit(perPage)
         .lean();
-      return notifications;
+
+      const unreadCount = await DB.Notification.find({
+        receiver: username,
+        read: false,
+      })
+        .limit(100)
+        .countDocuments();
+
+      return {
+        notifications,
+        unreadCount,
+      };
     },
     comments: async (
       { username, commentPage },

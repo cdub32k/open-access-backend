@@ -34,7 +34,7 @@ const typeDefs = gql`
   }
 
   type UserResponse {
-    notifications: [Notification]
+    notifsInfo(page: Int): NotificationResponse
     active: Boolean
     activeUntil: Date
     profilePic: String
@@ -63,6 +63,11 @@ const typeDefs = gql`
     dislikeCount: Int
     likes: [AnyLike]
     dislikes: [AnyDislike]
+  }
+
+  type NotificationResponse {
+    notifications: [Notification]
+    unreadCount: Int
   }
 
   union AnyComment = VideoComment | ImageComment | NoteComment
