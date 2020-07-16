@@ -89,14 +89,16 @@ export async function converAtMentionsToLinks(
     let username = match.slice(1);
     if (await User.exists({ username })) {
       if (!sentNotifs[username] && creator != username) {
-        await sendAtMentionNotification(
-          creator,
-          username,
-          mediaType,
-          mediaId,
-          commentId
-        );
-        sentNotifs[username] = true;
+        if (mediaType) {
+          await sendAtMentionNotification(
+            creator,
+            username,
+            mediaType,
+            mediaId,
+            commentId
+          );
+          sentNotifs[username] = true;
+        }
       }
       return `<a data-nativelink href='/profile/${match.slice(
         1

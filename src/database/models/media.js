@@ -49,12 +49,18 @@ mediaSchema.pre("save", async function (next) {
         this._id
       );
 
+      this.title = await parseLinks(
+        this.title,
+        this.username,
+        this.mediaType,
+        this._id
+      );
       if (this.mediaType == VIDEO_MEDIA_TYPE_ID)
         this.caption = convertVideoTimestampsToLinks(this._id, this.caption);
     }
     if (!this.isNew && this.isModified("caption")) {
       this.caption = stripLinks(this.caption);
-
+      this.title = stripLinks(this.title);
       if (
         ((this.mediaType == VIDEO_MEDIA_TYPE_ID ||
           this.mediaType == IMAGE_MEDIA_TYPE_ID) &&
@@ -70,6 +76,14 @@ mediaSchema.pre("save", async function (next) {
         this.mediaType,
         this._id
       );
+
+      this.title = await parseLinks(
+        this.title,
+        this.username,
+        this.mediaType,
+        this._id
+      );
+
       if (this.mediaType == VIDEO_MEDIA_TYPE_ID)
         this.caption = convertVideoTimestampsToLinks(this._id, this.caption);
     }

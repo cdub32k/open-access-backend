@@ -1731,7 +1731,7 @@ const resolvers = {
     },
     comments: async ({ _id, comments }, { page, sort }, context, info) => {
       if (comments) return comments;
-      
+
       const criteria = { mediaType: NOTE_MEDIA_TYPE_ID, replyId: null };
 
       let sortField = getSortCriteria(sort);

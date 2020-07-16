@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { parseLinks, stripLinks } from "../../utils/helpers";
 
 let userSchema = new mongoose.Schema(
   {
@@ -24,5 +25,19 @@ let userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ username: 1 });
+
+userSchema.pre("save", async function (next) {
+  try {
+    if (this.isNew) {
+      if (this.bio.length > 800) throw new Error("field max length exceeded");
+    }
+
+    if (!this.isNew) this.bio = stripLinks(this.bio);
+
+    if (this.bio.length > 800) throw new Error("field max length exceeded");
+
+    this.bio = await parseLinks(this.bio, this.username);
+  } catch (e) {}
+});
 
 export default mongoose.model("user", userSchema);

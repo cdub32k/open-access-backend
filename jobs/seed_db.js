@@ -21,7 +21,7 @@ import {
 
 import { asyncForEach } from "../src/utils/helpers";
 let words = [
-  "@first_member",
+  "@member9",
   "@member0",
   "@member1",
   "@member2",
@@ -31,8 +31,8 @@ let words = [
   "@member6",
   "@member7",
   "@member8",
-  "fossil",
-  "screw",
+  "#fossil",
+  "#screw",
   "#age",
   "#skip",
   "#resolution",
@@ -130,7 +130,7 @@ let words = [
   "zip",
   "ink",
   "aggressive",
-  "vacation",
+  "#vacation",
   "pray",
   "permissible",
   "faded",
@@ -172,7 +172,7 @@ let words = [
   "badge",
   "haircut",
   "boot",
-  "dinosaurs",
+  "#dinosaurs",
   "rotten",
   "harbor",
   "craven",
@@ -217,7 +217,7 @@ let words = [
   "subtract",
   "automatic",
   "gate",
-  "spiky",
+  "#spiky",
   "truculent",
   "slow",
   "bruise",
@@ -234,12 +234,12 @@ let words = [
   "spray",
   "mindless",
   "loose",
-  "fortunate",
+  "#fortunate",
   "aware",
   "replace",
   "sweltering",
-  "machine",
-  "summer",
+  "#machine",
+  "#summer",
   "sigh",
   "carve",
   "disagree",
@@ -363,114 +363,69 @@ function gen2Sens() {
 
 (async () => {
   await DB.User.deleteMany({});
-  await Promise.all([
-    DB.User.create({
-      joinedAt: Date.now(),
-      active: true,
-      activeUntil: null,
-      username: "first_member",
-      email: "member@mail.com",
-      displayName: gen3Words(),
-      bio: gen3Pars(),
-      passwordHash:
-        "$2a$08$zQYLLxdHQdvhQKrC8drmIue.OzyopZwZd8x.KulGqWqj8ma1IaZPq",
-    }),
-    DB.User.create({
-      active: true,
-      activeUntil: null,
-      displayName: gen3Words(),
-      bio: gen3Pars(),
-      username: "member2",
-      email: "member2@mail.com",
-      passwordHash:
-        "$2a$08$zQYLLxdHQdvhQKrC8drmIue.OzyopZwZd8x.KulGqWqj8ma1IaZPq",
-    }),
-    DB.User.create({
-      active: true,
-      activeUntil: null,
-      displayName: gen3Words(),
-      bio: gen3Pars(),
-      username: "member3",
-      email: "member3@mail.com",
-      passwordHash:
-        "$2a$08$zQYLLxdHQdvhQKrC8drmIue.OzyopZwZd8x.KulGqWqj8ma1IaZPq",
-    }),
-    DB.User.create({
-      active: true,
-      activeUntil: null,
-      displayName: gen3Words(),
-      bio: gen3Pars(),
-      username: "member4",
-      email: "member4@mail.com",
-      passwordHash:
-        "$2a$08$zQYLLxdHQdvhQKrC8drmIue.OzyopZwZd8x.KulGqWqj8ma1IaZPq",
-    }),
-    DB.User.create({
-      active: true,
-      activeUntil: null,
-      displayName: gen3Words(),
-      bio: gen3Pars(),
-      username: "member5",
-      email: "member5@mail.com",
-      passwordHash:
-        "$2a$08$zQYLLxdHQdvhQKrC8drmIue.OzyopZwZd8x.KulGqWqj8ma1IaZPq",
-    }),
-    DB.User.create({
-      active: true,
-      activeUntil: null,
-      displayName: gen3Words(),
-      bio: gen3Pars(),
-      username: "member6",
-      email: "member6@mail.com",
-      passwordHash:
-        "$2a$08$zQYLLxdHQdvhQKrC8drmIue.OzyopZwZd8x.KulGqWqj8ma1IaZPq",
-    }),
-    DB.User.create({
-      active: true,
-      activeUntil: null,
-      displayName: gen3Words(),
-      bio: gen3Pars(),
-      username: "member7",
-      email: "member7@mail.com",
-      passwordHash:
-        "$2a$08$zQYLLxdHQdvhQKrC8drmIue.OzyopZwZd8x.KulGqWqj8ma1IaZPq",
-    }),
-    DB.User.create({
-      active: true,
-      activeUntil: null,
-      displayName: gen3Words(),
-      bio: gen3Pars(),
-      username: "member8",
-      email: "member8@mail.com",
-      passwordHash:
-        "$2a$08$zQYLLxdHQdvhQKrC8drmIue.OzyopZwZd8x.KulGqWqj8ma1IaZPq",
-    }),
-    DB.User.create({
-      active: true,
-      activeUntil: null,
-      displayName: gen3Words(),
-      bio: gen3Pars(),
-      username: "member9",
-      email: "member9@mail.com",
-      passwordHash:
-        "$2a$08$zQYLLxdHQdvhQKrC8drmIue.OzyopZwZd8x.KulGqWqj8ma1IaZPq",
-    }),
-    DB.User.create({
-      active: true,
-      activeUntil: null,
-      displayName: gen3Words(),
-      bio: gen3Pars(),
-      username: "member0",
-      email: "member0@mail.com",
-      passwordHash:
-        "$2a$08$zQYLLxdHQdvhQKrC8drmIue.OzyopZwZd8x.KulGqWqj8ma1IaZPq",
-    }),
-  ]);
+
+  for (let i = 0; i < 10; i++) {
+    let profLarge = await sharp(
+      __dirname + `/seed_data/images/profile-pics/profile${i}.jpg`
+    );
+    const metaData = await profLarge.metadata();
+    if (metaData.width > 856) {
+      profLarge = await profLarge.resize(856, 856);
+    }
+    profLarge = await profLarge.jpeg({
+      progressive: true,
+      compressionLevel: 8,
+      adaptiveFiltering: true,
+    });
+
+    let profSmall = await sharp(
+      __dirname + `/seed_data/images/profile-pics/profile${i}.jpg`
+    )
+      .resize(98, 98)
+      .jpeg({
+        progressive: true,
+        compressionLevel: 8,
+        adaptiveFiltering: true,
+      });
+
+    let fileName = `thumb-profile.${Date.now()}.jpg`;
+    let thumbName = `small-${fileName}`;
+
+    let s3Params = {
+      Bucket: S3_BUCKET,
+      Key: `img/member${i}/${fileName}`,
+      Body: profLarge,
+      ACL: "public-read",
+    };
+    let s3Params2 = {
+      Bucket: S3_BUCKET,
+      Key: `img/member${i}/${thumbName}`,
+      Body: profSmall,
+      ACL: "public-read",
+    };
+    await Promise.all([
+      s3.upload(s3Params).promise(),
+      s3.upload(s3Params2).promise(),
+      DB.User.create({
+        joinedAt: Date.now(),
+        active: true,
+        activeUntil: null,
+        username: `member${i}`,
+        email: `member${i}@mail.com`,
+        displayName: gen3Words(),
+        bio: gen3Pars(),
+        passwordHash:
+          "$2a$08$zQYLLxdHQdvhQKrC8drmIue.OzyopZwZd8x.KulGqWqj8ma1IaZPq",
+        profilePic: `https://${S3_BUCKET}.s3.amazonaws.com/img/member${i}/${fileName}`,
+        smallPic: `https://${S3_BUCKET}.s3.amazonaws.com/img/member${i}/${thumbName}`,
+      }),
+    ]);
+  }
 
   await DB.Media.deleteMany({});
 
   let members = [
-    "first_member",
+    "member1",
     "member2",
     "member3",
     "member4",
@@ -492,13 +447,13 @@ function gen2Sens() {
     let fileName = `${Date.now()}`;
     let s3VidParams = {
       Bucket: S3_BUCKET,
-      Key: `vid/first_member/${fileName}.m4v`,
+      Key: `vid/member1/${fileName}.m4v`,
       Body: fs.createReadStream(__dirname + `/seed_data/videos/video${i}.m4v`),
       ACL: "public-read",
     };
     let s3ThumbParams = {
       Bucket: S3_BUCKET,
-      Key: `vid/first_member/thumb-${fileName}.jpg`,
+      Key: `vid/member1/thumb-${fileName}.jpg`,
       Body: await sharp(__dirname + `/seed_data/videos/thumb${i}.jpg`)
         .resize(856, 482)
         .jpeg({
@@ -518,9 +473,9 @@ function gen2Sens() {
 
     let vid = await DB.Media.create({
       mediaType: VIDEO_MEDIA_TYPE_ID,
-      username: "first_member",
-      url: `https://${S3_BUCKET}.s3.amazonaws.com/vid/first_member/${fileName}.m4v`,
-      thumbUrl: `https://${S3_BUCKET}.s3.amazonaws.com/vid/first_member/thumb-${fileName}.jpg`,
+      username: "member1",
+      url: `https://${S3_BUCKET}.s3.amazonaws.com/vid/member1/${fileName}.m4v`,
+      thumbUrl: `https://${S3_BUCKET}.s3.amazonaws.com/vid/member1/thumb-${fileName}.jpg`,
       title,
       caption: `Check out 00:0${Math.ceil(Math.random() * 10)}! ` + caption,
       hashtags: [],
@@ -627,7 +582,7 @@ function gen2Sens() {
     let fileName = `${Date.now()}`;
     let s3ImageParams = {
       Bucket: S3_BUCKET,
-      Key: `img/first_member/thumb-${fileName}.jpg`,
+      Key: `img/member1/thumb-${fileName}.jpg`,
       Body: await sharp(__dirname + `/seed_data/images/image${i}.jpg`)
         .resize(856, 856)
         .jpeg({
@@ -645,8 +600,8 @@ function gen2Sens() {
 
     let image = await DB.Media.create({
       mediaType: IMAGE_MEDIA_TYPE_ID,
-      username: "first_member",
-      url: `https://${S3_BUCKET}.s3.amazonaws.com/img/first_member/thumb-${fileName}.jpg`,
+      username: "member1",
+      url: `https://${S3_BUCKET}.s3.amazonaws.com/img/member1/thumb-${fileName}.jpg`,
       title,
       caption,
       hashtags: [],
@@ -750,7 +705,7 @@ function gen2Sens() {
     let note = await DB.Media.create({
       mediaType: NOTE_MEDIA_TYPE_ID,
       caption,
-      username: "first_member",
+      username: "member1",
       hashtags: [],
     });
 
