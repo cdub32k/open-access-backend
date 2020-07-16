@@ -541,6 +541,39 @@ const resolvers = {
         .lean();
       return replies;
     },
+    notifsInfo: async (
+      parent,
+      { page, unreadOnly, username },
+      { req: { active } },
+      info
+    ) => {
+      if (!active) return [];
+      if (!page) page = 0;
+
+      let criteria = {
+        receiver: username,
+      };
+      if (unreadOnly) criteria.read = false;
+      const notifications = await DB.Notification.find(criteria)
+        .sort({
+          createdAt: -1,
+        })
+        .skip(page * perPage)
+        .limit(perPage)
+        .lean();
+
+      const unreadCount = await DB.Notification.find({
+        receiver: username,
+        read: false,
+      })
+        .limit(100)
+        .countDocuments();
+
+      return {
+        notifications,
+        unreadCount,
+      };
+    },
   },
   VideoSearchResponse: {
     imageCount: async ({ query, hashtag }) => {
@@ -1685,11 +1718,24 @@ const resolvers = {
       if (!authorized) return null;
 
       try {
-        await DB.Notification.updateMany(
-          { _id: { $in: ids } },
-          { read: true, readAt: Date.now() }
-        );
-        return true;
+        if (!ids) {
+          await DB.Notification.updateMany(
+            { receiver: username },
+            { read: true, readAt: Date.now() }
+          );
+          return 0;
+        } else {
+          await DB.Notification.updateMany(
+            { _id: { $in: ids } },
+            { read: true, readAt: Date.now() }
+          );
+          return await DB.Notification.find({
+            receiver: username,
+            read: false,
+          })
+            .limit(100)
+            .countDocuments();
+        }
       } catch (e) {
         return false;
       }
@@ -1974,16 +2020,18 @@ const resolvers = {
     },
     notifsInfo: async (
       parent,
-      { page },
+      { page, unreadOnly },
       { req: { username, active } },
       info
     ) => {
       if (!active) return [];
       if (!page) page = 0;
 
-      const notifications = await DB.Notification.find({
+      let criteria = {
         receiver: username,
-      })
+      };
+      if (unreadOnly) criteria.read = false;
+      const notifications = await DB.Notification.find(criteria)
         .sort({
           createdAt: -1,
         })

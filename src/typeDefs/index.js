@@ -31,10 +31,16 @@ const typeDefs = gql`
     videoCommentReplies(commentId: String!): [VideoComment]
     imageCommentReplies(commentId: String!): [ImageComment]
     noteCommentReplies(commentId: String!): [NoteComment]
+
+    notifsInfo(
+      username: String
+      page: Int
+      unreadOnly: Boolean
+    ): NotificationResponse
   }
 
   type UserResponse {
-    notifsInfo(page: Int): NotificationResponse
+    notifsInfo(page: Int, unreadOnly: Boolean): NotificationResponse
     active: Boolean
     activeUntil: Date
     profilePic: String
@@ -118,7 +124,7 @@ const typeDefs = gql`
     likeNote(id: String!): Boolean
     dislikeNote(id: String!): Boolean
     commentNote(id: String!, body: String!, replyId: String): String
-    markNotificationsRead(ids: [String]!): Boolean
+    markNotificationsRead(ids: [String]): Int
 
     likeVideoComment(videoId: String!, commentId: String!): String
     dislikeVideoComment(videoId: String!, commentId: String!): String
