@@ -19,7 +19,7 @@ import {
   NOTE_MEDIA_TYPE_ID,
 } from "../src/constants";
 
-import { asyncForEach } from "../src/utils/helpers";
+import { asyncForEach, parseHashtags } from "../src/utils/helpers";
 let words = [
   "@member9",
   "@member0",
@@ -445,7 +445,7 @@ function gen2Sens() {
       mediaType: NOTE_MEDIA_TYPE_ID,
       caption,
       username: "member1",
-      hashtags: [],
+      hashtags: [...new Set(parseHashtags(caption))],
     });
 
     noteIds.push(note._id);
@@ -570,7 +570,9 @@ function gen2Sens() {
       url: `https://${S3_BUCKET}.s3.amazonaws.com/img/member1/thumb-${fileName}.jpg`,
       title,
       caption,
-      hashtags: [],
+      hashtags: [
+        ...new Set(parseHashtags(title).concat(parseHashtags(caption))),
+      ],
     });
 
     imageIds.push(image._id);
@@ -703,7 +705,9 @@ function gen2Sens() {
       thumbUrl: `https://${S3_BUCKET}.s3.amazonaws.com/vid/member1/thumb-${fileName}.jpg`,
       title,
       caption: `Check out 00:0${Math.ceil(Math.random() * 10)}! ` + caption,
-      hashtags: [],
+      hashtags: [
+        ...new Set(parseHashtags(title).concat(parseHashtags(caption))),
+      ],
     });
 
     videoIds.push(vid._id);

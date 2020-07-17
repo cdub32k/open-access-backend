@@ -50,9 +50,11 @@ router.post("/upload", upload, async (req, res) => {
   try {
     const username = req.username;
 
-    let hashtags = parseHashtags(req.body.title).concat(
-      parseHashtags(req.body.caption)
-    );
+    let hashtags = [
+      ...new Set(
+        parseHashtags(req.body.title).concat(parseHashtags(req.body.caption))
+      ),
+    ];
 
     let img = sharp(req.files["thumb"][0].path);
     const metaData = await img.metadata();
@@ -176,9 +178,11 @@ router.put("/:id", upload, async (req, res) => {
       mediaType: VIDEO_MEDIA_TYPE_ID,
     });
 
-    let hashtags = parseHashtags(req.body.title).concat(
-      parseHashtags(req.body.caption)
-    );
+    let hashtags = [
+      ...new Set(
+        parseHashtags(req.body.title).concat(parseHashtags(req.body.caption))
+      ),
+    ];
 
     let criteria = {
       title: req.body.title,

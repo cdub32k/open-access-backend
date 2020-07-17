@@ -30,7 +30,6 @@ userSchema.pre("save", async function (next) {
   try {
     if (this.isNew) {
       if (this.bio.length > 800) throw new Error("field max length exceeded");
-      this.bio = await parseLinks(this.bio, this.username);
     }
 
     if (!this.isNew) this.bio = stripLinks(this.bio);
@@ -38,7 +37,11 @@ userSchema.pre("save", async function (next) {
     if (this.bio.length > 800) throw new Error("field max length exceeded");
 
     this.bio = await parseLinks(this.bio, this.username);
-  } catch (e) {}
+
+    next();
+  } catch (e) {
+    next(e);
+  }
 });
 
 export default mongoose.model("user", userSchema);

@@ -694,7 +694,7 @@ const resolvers = {
     ) => {
       if (!authorized || !active) return null;
 
-      let hashtags = parseHashtags(caption);
+      let hashtags = [...new Set(parseHashtags(caption))];
 
       const note = await DB.Media.create({
         mediaType: NOTE_MEDIA_TYPE_ID,

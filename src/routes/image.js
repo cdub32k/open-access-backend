@@ -50,9 +50,11 @@ router.post("/upload", upload, async (req, res) => {
   try {
     const username = req.username;
 
-    let hashtags = parseHashtags(req.body.title).concat(
-      parseHashtags(req.body.caption)
-    );
+    let hashtags = [
+      ...new Set(
+        parseHashtags(req.body.title).concat(parseHashtags(req.body.caption))
+      ),
+    ];
 
     let img = sharp(req.files["image"][0].path);
     const metaData = await img.metadata();
@@ -272,9 +274,11 @@ router.delete("/comments/:id", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   try {
-    let hashtags = parseHashtags(req.body.title).concat(
-      parseHashtags(req.body.caption)
-    );
+    let hashtags = [
+      ...new Set(
+        parseHashtags(req.body.title).concat(parseHashtags(req.body.caption))
+      ),
+    ];
     let m = await Media.findOne({
       _id: req.params.id,
       mediaType: IMAGE_MEDIA_TYPE_ID,
