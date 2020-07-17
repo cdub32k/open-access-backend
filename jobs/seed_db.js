@@ -464,6 +464,244 @@ function gen2Sens() {
     await s3.upload(s3VidParams).promise();
     await s3.upload(s3ThumbParams).promise();
 
+    for (let i = 1; i <= NUM_NOTES; i++) {
+      let caption = gen3Pars();
+      let note = await DB.Media.create({
+        mediaType: NOTE_MEDIA_TYPE_ID,
+        caption,
+        username: "member1",
+        hashtags: [],
+      });
+
+      noteIds.push(note._id);
+    }
+
+    for (let i = 1; i <= NUM_NOTE_COMMENTS; i++) {
+      let mediaId = noteIds[Math.floor(Math.random() * noteIds.length)];
+      await DB.Media.updateOne({ _id: mediaId }, { $inc: { commentCount: 1 } });
+
+      let replyId;
+      if (Math.random() * 10 < 3.2 && noteCommentIds.length)
+        replyId =
+          noteCommentIds[Math.floor(Math.random() * noteCommentIds.length)][0];
+      else replyId = null;
+
+      if (replyId)
+        await DB.Comment.updateOne(
+          { _id: replyId },
+          { $inc: { replyCount: 1 } }
+        );
+
+      let c = await DB.Comment.create({
+        mediaType: NOTE_MEDIA_TYPE_ID,
+        username: members[Math.floor(Math.random() * members.length)],
+        mediaId,
+        body: gen2Pars(),
+        replyId,
+      });
+      noteCommentIds.push([c._id, mediaId]);
+    }
+
+    await asyncForEach(members, async (member) => {
+      let notesForMember = [...noteIds];
+      for (let i = 0; i < USER_NOTE_LIKES; i++) {
+        let mediaId =
+          notesForMember[Math.floor(Math.random() * notesForMember.length)];
+        notesForMember.splice(notesForMember.indexOf(mediaId), 1);
+        await DB.Media.updateOne({ _id: mediaId }, { $inc: { likeCount: 1 } });
+        await DB.Like.create({
+          mediaType: NOTE_MEDIA_TYPE_ID,
+          username: member,
+          mediaId,
+        });
+      }
+      notesForMember = [...noteIds];
+      for (let i = 0; i < USER_NOTE_DISLIKES; i++) {
+        let mediaId =
+          notesForMember[Math.floor(Math.random() * notesForMember.length)];
+        notesForMember.splice(notesForMember.indexOf(mediaId), 1);
+        await DB.Media.updateOne(
+          { _id: mediaId },
+          { $inc: { dislikeCount: 1 } }
+        );
+        await DB.Dislike.create({
+          mediaType: NOTE_MEDIA_TYPE_ID,
+          username: member,
+          mediaId,
+        });
+      }
+      let commsForMember = [...noteCommentIds];
+      for (let i = 0; i < USER_NOTE_COMMENT_LIKES; i++) {
+        let [commentId, mediaId] = commsForMember[
+          Math.floor(Math.random() * commsForMember.length)
+        ];
+        commsForMember.splice(
+          commsForMember.findIndex((c) => c[0] == commentId),
+          1
+        );
+        await DB.Comment.updateOne(
+          { _id: commentId },
+          { $inc: { likeCount: 1 } }
+        );
+        await DB.CommentLike.create({
+          mediaType: NOTE_MEDIA_TYPE_ID,
+          username: member,
+          mediaId,
+          commentId,
+        });
+      }
+      commsForMember = [...noteCommentIds];
+      for (let i = 0; i < USER_NOTE_COMMENT_DISLIKES; i++) {
+        let [commentId, mediaId] = commsForMember[
+          Math.floor(Math.random() * commsForMember.length)
+        ];
+        commsForMember.splice(
+          commsForMember.findIndex((c) => c[0] == commentId),
+          1
+        );
+        await DB.Comment.updateOne(
+          { _id: commentId },
+          { $inc: { dislikeCount: 1 } }
+        );
+        await DB.CommentDislike.create({
+          mediaType: NOTE_MEDIA_TYPE_ID,
+          username: member,
+          mediaId,
+          commentId,
+        });
+      }
+    });
+
+    for (let i = 1; i <= NUM_IMAGES; i++) {
+      let fileName = `${Date.now()}`;
+      let s3ImageParams = {
+        Bucket: S3_BUCKET,
+        Key: `img/member1/thumb-${fileName}.jpg`,
+        Body: await sharp(__dirname + `/seed_data/images/image${i}.jpg`)
+          .resize(856, 856)
+          .jpeg({
+            progressive: true,
+            compressionLevel: 6,
+            adaptiveFiltering: true,
+          })
+          .toBuffer(),
+        ACL: "public-read",
+      };
+      await s3.upload(s3ImageParams).promise();
+
+      let title = gen2Sens();
+      let caption = gen5Pars();
+
+      let image = await DB.Media.create({
+        mediaType: IMAGE_MEDIA_TYPE_ID,
+        username: "member1",
+        url: `https://${S3_BUCKET}.s3.amazonaws.com/img/member1/thumb-${fileName}.jpg`,
+        title,
+        caption,
+        hashtags: [],
+      });
+
+      imageIds.push(image._id);
+    }
+
+    for (let i = 1; i <= NUM_IMAGE_COMMENTS; i++) {
+      let mediaId = imageIds[Math.floor(Math.random() * imageIds.length)];
+      await DB.Media.updateOne({ _id: mediaId }, { $inc: { commentCount: 1 } });
+
+      let replyId;
+      if (Math.random() * 10 < 3.2 && imageCommentIds.length)
+        replyId =
+          imageCommentIds[
+            Math.floor(Math.random() * imageCommentIds.length)
+          ][0];
+      else replyId = null;
+
+      if (replyId)
+        await DB.Comment.updateOne(
+          { _id: replyId },
+          { $inc: { replyCount: 1 } }
+        );
+
+      let c = await DB.Comment.create({
+        mediaType: IMAGE_MEDIA_TYPE_ID,
+        username: members[Math.floor(Math.random() * members.length)],
+        mediaId,
+        body: gen2Pars(),
+        replyId,
+      });
+      imageCommentIds.push([c._id, mediaId]);
+    }
+
+    await asyncForEach(members, async (member) => {
+      let imagesForMember = [...imageIds];
+      for (let i = 0; i < USER_IMAGE_LIKES; i++) {
+        let mediaId =
+          imagesForMember[Math.floor(Math.random() * imagesForMember.length)];
+        imagesForMember.splice(imagesForMember.indexOf(mediaId), 1);
+        await DB.Media.updateOne({ _id: mediaId }, { $inc: { likeCount: 1 } });
+        await DB.Like.create({
+          mediaType: IMAGE_MEDIA_TYPE_ID,
+          username: member,
+          mediaId,
+        });
+      }
+      imagesForMember = [...imageIds];
+      for (let i = 0; i < USER_IMAGE_DISLIKES; i++) {
+        let mediaId =
+          imagesForMember[Math.floor(Math.random() * imagesForMember.length)];
+        imagesForMember.splice(imagesForMember.indexOf(mediaId), 1);
+        await DB.Media.updateOne(
+          { _id: mediaId },
+          { $inc: { dislikeCount: 1 } }
+        );
+        await DB.Dislike.create({
+          mediaType: IMAGE_MEDIA_TYPE_ID,
+          username: member,
+          mediaId,
+        });
+      }
+      let commsForMember = [...imageCommentIds];
+      for (let i = 0; i < USER_IMAGE_COMMENT_LIKES; i++) {
+        let [commentId, mediaId] = commsForMember[
+          Math.floor(Math.random() * commsForMember.length)
+        ];
+        commsForMember.splice(
+          commsForMember.findIndex((c) => c[0] == commentId),
+          1
+        );
+        await DB.Comment.updateOne(
+          { _id: commentId },
+          { $inc: { likeCount: 1 } }
+        );
+        await DB.CommentLike.create({
+          mediaType: IMAGE_MEDIA_TYPE_ID,
+          username: member,
+          mediaId,
+          commentId,
+        });
+      }
+      commsForMember = [...imageCommentIds];
+      for (let i = 0; i < USER_IMAGE_COMMENT_DISLIKES; i++) {
+        let [commentId, mediaId] = commsForMember[
+          Math.floor(Math.random() * commsForMember.length)
+        ];
+        commsForMember.splice(
+          commsForMember.findIndex((c) => c[0] == commentId),
+          1
+        );
+        await DB.Comment.updateOne(
+          { _id: commentId },
+          { $inc: { dislikeCount: 1 } }
+        );
+        await DB.CommentDislike.create({
+          mediaType: IMAGE_MEDIA_TYPE_ID,
+          username: member,
+          mediaId,
+          commentId,
+        });
+      }
+    });
+
     let title = gen2Sens();
     let caption = gen5Pars();
 
@@ -567,230 +805,6 @@ function gen2Sens() {
       );
       await DB.CommentDislike.create({
         mediaType: VIDEO_MEDIA_TYPE_ID,
-        username: member,
-        mediaId,
-        commentId,
-      });
-    }
-  });
-
-  for (let i = 1; i <= NUM_IMAGES; i++) {
-    let fileName = `${Date.now()}`;
-    let s3ImageParams = {
-      Bucket: S3_BUCKET,
-      Key: `img/member1/thumb-${fileName}.jpg`,
-      Body: await sharp(__dirname + `/seed_data/images/image${i}.jpg`)
-        .resize(856, 856)
-        .jpeg({
-          progressive: true,
-          compressionLevel: 6,
-          adaptiveFiltering: true,
-        })
-        .toBuffer(),
-      ACL: "public-read",
-    };
-    await s3.upload(s3ImageParams).promise();
-
-    let title = gen2Sens();
-    let caption = gen5Pars();
-
-    let image = await DB.Media.create({
-      mediaType: IMAGE_MEDIA_TYPE_ID,
-      username: "member1",
-      url: `https://${S3_BUCKET}.s3.amazonaws.com/img/member1/thumb-${fileName}.jpg`,
-      title,
-      caption,
-      hashtags: [],
-    });
-
-    imageIds.push(image._id);
-  }
-
-  for (let i = 1; i <= NUM_IMAGE_COMMENTS; i++) {
-    let mediaId = imageIds[Math.floor(Math.random() * imageIds.length)];
-    await DB.Media.updateOne({ _id: mediaId }, { $inc: { commentCount: 1 } });
-
-    let replyId;
-    if (Math.random() * 10 < 3.2 && imageCommentIds.length)
-      replyId =
-        imageCommentIds[Math.floor(Math.random() * imageCommentIds.length)][0];
-    else replyId = null;
-
-    if (replyId)
-      await DB.Comment.updateOne({ _id: replyId }, { $inc: { replyCount: 1 } });
-
-    let c = await DB.Comment.create({
-      mediaType: IMAGE_MEDIA_TYPE_ID,
-      username: members[Math.floor(Math.random() * members.length)],
-      mediaId,
-      body: gen2Pars(),
-      replyId,
-    });
-    imageCommentIds.push([c._id, mediaId]);
-  }
-
-  await asyncForEach(members, async (member) => {
-    let imagesForMember = [...imageIds];
-    for (let i = 0; i < USER_IMAGE_LIKES; i++) {
-      let mediaId =
-        imagesForMember[Math.floor(Math.random() * imagesForMember.length)];
-      imagesForMember.splice(imagesForMember.indexOf(mediaId), 1);
-      await DB.Media.updateOne({ _id: mediaId }, { $inc: { likeCount: 1 } });
-      await DB.Like.create({
-        mediaType: IMAGE_MEDIA_TYPE_ID,
-        username: member,
-        mediaId,
-      });
-    }
-    imagesForMember = [...imageIds];
-    for (let i = 0; i < USER_IMAGE_DISLIKES; i++) {
-      let mediaId =
-        imagesForMember[Math.floor(Math.random() * imagesForMember.length)];
-      imagesForMember.splice(imagesForMember.indexOf(mediaId), 1);
-      await DB.Media.updateOne({ _id: mediaId }, { $inc: { dislikeCount: 1 } });
-      await DB.Dislike.create({
-        mediaType: IMAGE_MEDIA_TYPE_ID,
-        username: member,
-        mediaId,
-      });
-    }
-    let commsForMember = [...imageCommentIds];
-    for (let i = 0; i < USER_IMAGE_COMMENT_LIKES; i++) {
-      let [commentId, mediaId] = commsForMember[
-        Math.floor(Math.random() * commsForMember.length)
-      ];
-      commsForMember.splice(
-        commsForMember.findIndex((c) => c[0] == commentId),
-        1
-      );
-      await DB.Comment.updateOne(
-        { _id: commentId },
-        { $inc: { likeCount: 1 } }
-      );
-      await DB.CommentLike.create({
-        mediaType: IMAGE_MEDIA_TYPE_ID,
-        username: member,
-        mediaId,
-        commentId,
-      });
-    }
-    commsForMember = [...imageCommentIds];
-    for (let i = 0; i < USER_IMAGE_COMMENT_DISLIKES; i++) {
-      let [commentId, mediaId] = commsForMember[
-        Math.floor(Math.random() * commsForMember.length)
-      ];
-      commsForMember.splice(
-        commsForMember.findIndex((c) => c[0] == commentId),
-        1
-      );
-      await DB.Comment.updateOne(
-        { _id: commentId },
-        { $inc: { dislikeCount: 1 } }
-      );
-      await DB.CommentDislike.create({
-        mediaType: IMAGE_MEDIA_TYPE_ID,
-        username: member,
-        mediaId,
-        commentId,
-      });
-    }
-  });
-
-  for (let i = 1; i <= 100; i++) {
-    let caption = gen3Pars();
-    let note = await DB.Media.create({
-      mediaType: NOTE_MEDIA_TYPE_ID,
-      caption,
-      username: "member1",
-      hashtags: [],
-    });
-
-    noteIds.push(note._id);
-  }
-
-  for (let i = 1; i <= NUM_NOTE_COMMENTS; i++) {
-    let mediaId = noteIds[Math.floor(Math.random() * noteIds.length)];
-    await DB.Media.updateOne({ _id: mediaId }, { $inc: { commentCount: 1 } });
-
-    let replyId;
-    if (Math.random() * 10 < 3.2 && noteCommentIds.length)
-      replyId =
-        noteCommentIds[Math.floor(Math.random() * noteCommentIds.length)][0];
-    else replyId = null;
-
-    if (replyId)
-      await DB.Comment.updateOne({ _id: replyId }, { $inc: { replyCount: 1 } });
-
-    let c = await DB.Comment.create({
-      mediaType: NOTE_MEDIA_TYPE_ID,
-      username: members[Math.floor(Math.random() * members.length)],
-      mediaId,
-      body: gen2Pars(),
-      replyId,
-    });
-    noteCommentIds.push([c._id, mediaId]);
-  }
-
-  await asyncForEach(members, async (member) => {
-    let notesForMember = [...noteIds];
-    for (let i = 0; i < USER_NOTE_LIKES; i++) {
-      let mediaId =
-        notesForMember[Math.floor(Math.random() * notesForMember.length)];
-      notesForMember.splice(notesForMember.indexOf(mediaId), 1);
-      await DB.Media.updateOne({ _id: mediaId }, { $inc: { likeCount: 1 } });
-      await DB.Like.create({
-        mediaType: NOTE_MEDIA_TYPE_ID,
-        username: member,
-        mediaId,
-      });
-    }
-    notesForMember = [...noteIds];
-    for (let i = 0; i < USER_NOTE_DISLIKES; i++) {
-      let mediaId =
-        notesForMember[Math.floor(Math.random() * notesForMember.length)];
-      notesForMember.splice(notesForMember.indexOf(mediaId), 1);
-      await DB.Media.updateOne({ _id: mediaId }, { $inc: { dislikeCount: 1 } });
-      await DB.Dislike.create({
-        mediaType: NOTE_MEDIA_TYPE_ID,
-        username: member,
-        mediaId,
-      });
-    }
-    let commsForMember = [...noteCommentIds];
-    for (let i = 0; i < USER_NOTE_COMMENT_LIKES; i++) {
-      let [commentId, mediaId] = commsForMember[
-        Math.floor(Math.random() * commsForMember.length)
-      ];
-      commsForMember.splice(
-        commsForMember.findIndex((c) => c[0] == commentId),
-        1
-      );
-      await DB.Comment.updateOne(
-        { _id: commentId },
-        { $inc: { likeCount: 1 } }
-      );
-      await DB.CommentLike.create({
-        mediaType: NOTE_MEDIA_TYPE_ID,
-        username: member,
-        mediaId,
-        commentId,
-      });
-    }
-    commsForMember = [...noteCommentIds];
-    for (let i = 0; i < USER_NOTE_COMMENT_DISLIKES; i++) {
-      let [commentId, mediaId] = commsForMember[
-        Math.floor(Math.random() * commsForMember.length)
-      ];
-      commsForMember.splice(
-        commsForMember.findIndex((c) => c[0] == commentId),
-        1
-      );
-      await DB.Comment.updateOne(
-        { _id: commentId },
-        { $inc: { dislikeCount: 1 } }
-      );
-      await DB.CommentDislike.create({
-        mediaType: NOTE_MEDIA_TYPE_ID,
         username: member,
         mediaId,
         commentId,
