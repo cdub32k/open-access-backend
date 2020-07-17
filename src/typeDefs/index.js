@@ -53,7 +53,7 @@ const typeDefs = gql`
     city: String
     state: String
     bio: String
-    joinedAt: Date
+    createdAt: Date
     notes: [Note]
     images: [Image]
     videos: [Video]
@@ -148,7 +148,7 @@ const typeDefs = gql`
     city: String
     state: String
     bio: String
-    joinedAt: Date
+    createdAt: Date
     notes: [Note]
     images: [Image]
     videos: [Video]
@@ -274,7 +274,7 @@ const typeDefs = gql`
     likeCount: Int
     dislikeCount: Int
     commentCount: Int
-    uploadedAt: Date
+    createdAt: Date
     likes: [NoteLike]
     dislikes: [NoteDislike]
     comments(page: Int, sort: Int): [NoteComment]
@@ -292,7 +292,7 @@ const typeDefs = gql`
     likeCount: Int
     dislikeCount: Int
     commentCount: Int
-    uploadedAt: Date
+    createdAt: Date
     likes: [ImageLike]
     dislikes: [ImageDislike]
     comments(page: Int, sort: Int): [ImageComment]
@@ -311,7 +311,7 @@ const typeDefs = gql`
     likeCount: Int
     dislikeCount: Int
     commentCount: Int
-    uploadedAt: Date
+    createdAt: Date
     likes: [VideoLike]
     dislikes: [VideoDislike]
     views: [VideoView]

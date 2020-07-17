@@ -131,36 +131,36 @@ export function getSortCriteria(sort) {
   switch (sort) {
     case 0:
       sortField = {
-        uploadedAt: -1,
+        createdAt: -1,
       };
       break;
     case 1:
       sortField = {
         likeCountTrending: -1,
-        uploadedAt: -1,
+        createdAt: -1,
       };
       break;
     case 2:
       sortField = {
         dislikeCountTrending: -1,
-        uploadedAt: -1,
+        createdAt: -1,
       };
       break;
     case 3:
       sortField = {
         likeCount: -1,
-        uploadedAt: -1,
+        createdAt: -1,
       };
       break;
     case 4:
       sortField = {
         dislikeCount: -1,
-        uploadedAt: -1,
+        createdAt: -1,
       };
       break;
     default:
       sortField = {
-        uploadedAt: -1,
+        createdAt: -1,
       };
   }
   return sortField;

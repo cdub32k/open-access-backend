@@ -27,7 +27,7 @@ let mediaSchema = new mongoose.Schema(
     username: { type: String, required: true },
     hashtags: [String],
   },
-  { timestamps: { createdAt: "uploadedAt" } }
+  { timestamps: true }
 );
 
 mediaSchema.pre("save", async function (next) {
@@ -96,7 +96,7 @@ mediaSchema.pre("save", async function (next) {
   }
 });
 mediaSchema.index({ mediaType: 1 });
-mediaSchema.index({ uploadedAt: 1 });
+mediaSchema.index({ createdAt: 1 });
 mediaSchema.index({ username: 1 });
 mediaSchema.index({ hashtags: 1 });
 mediaSchema.index({ likeCount: 1 });

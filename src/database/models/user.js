@@ -21,7 +21,7 @@ let userSchema = new mongoose.Schema(
     tempKey: String,
     tempKeyIssuedAt: Date,
   },
-  { timestamps: { createdAt: "joinedAt" }, capped: { max: 5000 } }
+  { timestamps: true, capped: { max: 5000 } }
 );
 
 userSchema.index({ username: 1 });
@@ -30,6 +30,7 @@ userSchema.pre("save", async function (next) {
   try {
     if (this.isNew) {
       if (this.bio.length > 800) throw new Error("field max length exceeded");
+      this.bio = await parseLinks(this.bio, this.username);
     }
 
     if (!this.isNew) this.bio = stripLinks(this.bio);

@@ -403,7 +403,7 @@ function gen2Sens() {
       s3.upload(s3Params).promise(),
       s3.upload(s3Params2).promise(),
       DB.User.create({
-        joinedAt: Date.now(),
+        createdAt: Date.now(),
         active: true,
         activeUntil: null,
         username: `member${i}`,
@@ -452,14 +452,17 @@ function gen2Sens() {
   }
 
   for (let i = 1; i <= NUM_NOTE_COMMENTS; i++) {
-    let mediaId = noteIds[Math.floor(Math.random() * noteIds.length)];
-    await DB.Media.updateOne({ _id: mediaId }, { $inc: { commentCount: 1 } });
+    let replyId, mediaId;
 
-    let replyId;
-    if (Math.random() * 10 < 3.2 && noteCommentIds.length)
-      replyId =
-        noteCommentIds[Math.floor(Math.random() * noteCommentIds.length)][0];
-    else replyId = null;
+    if (Math.random() * 10 < 3.2 && noteCommentIds.length) {
+      [replyId, mediaId] = noteCommentIds[
+        Math.floor(Math.random() * noteCommentIds.length)
+      ];
+    } else {
+      replyId = null;
+      mediaId = noteIds[Math.floor(Math.random() * noteIds.length)];
+    }
+    await DB.Media.updateOne({ _id: mediaId }, { $inc: { commentCount: 1 } });
 
     if (replyId)
       await DB.Comment.updateOne({ _id: replyId }, { $inc: { replyCount: 1 } });
@@ -574,14 +577,16 @@ function gen2Sens() {
   }
 
   for (let i = 1; i <= NUM_IMAGE_COMMENTS; i++) {
-    let mediaId = imageIds[Math.floor(Math.random() * imageIds.length)];
+    let replyId, mediaId;
+    if (Math.random() * 10 < 3.2 && imageCommentIds.length) {
+      [replyId, mediaId] = imageCommentIds[
+        Math.floor(Math.random() * imageCommentIds.length)
+      ];
+    } else {
+      replyId = null;
+      mediaId = imageIds[Math.floor(Math.random() * imageIds.length)];
+    }
     await DB.Media.updateOne({ _id: mediaId }, { $inc: { commentCount: 1 } });
-
-    let replyId;
-    if (Math.random() * 10 < 3.2 && imageCommentIds.length)
-      replyId =
-        imageCommentIds[Math.floor(Math.random() * imageCommentIds.length)][0];
-    else replyId = null;
 
     if (replyId)
       await DB.Comment.updateOne({ _id: replyId }, { $inc: { replyCount: 1 } });
@@ -705,15 +710,17 @@ function gen2Sens() {
   }
 
   for (let i = 1; i <= NUM_VID_COMMENTS; i++) {
-    let mediaId = videoIds[Math.floor(Math.random() * videoIds.length)];
+    let replyId, mediaId;
+    if (Math.random() * 10 < 3.2 && videoCommentIds.length) {
+      [replyId, mediaId] = videoCommentIds[
+        Math.floor(Math.random() * videoCommentIds.length)
+      ];
+    } else {
+      replyId = null;
+      mediaId = videoIds[Math.floor(Math.random() * videoIds.length)];
+    }
+
     await DB.Media.updateOne({ _id: mediaId }, { $inc: { commentCount: 1 } });
-
-    let replyId;
-    if (Math.random() * 10 < 3.2 && videoCommentIds.length)
-      replyId =
-        videoCommentIds[Math.floor(Math.random() * videoCommentIds.length)][0];
-    else replyId = null;
-
     if (replyId)
       await DB.Comment.updateOne({ _id: replyId }, { $inc: { replyCount: 1 } });
 

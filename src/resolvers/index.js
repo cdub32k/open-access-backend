@@ -188,7 +188,7 @@ const resolvers = {
         title: 1,
         caption: 1,
         viewCount: 1,
-        uploadedAt: 1,
+        createdAt: 1,
         _id: 1,
       };
       if (!page) page = 0;
@@ -243,7 +243,7 @@ const resolvers = {
         url: 1,
         title: 1,
         caption: 1,
-        uploadedAt: 1,
+        createdAt: 1,
         _id: 1,
       };
       if (!page) page = 0;
@@ -290,7 +290,7 @@ const resolvers = {
         commentCount: 1,
         username: 1,
         caption: 1,
-        uploadedAt: 1,
+        createdAt: 1,
         _id: 1,
       };
       if (!page) page = 0;
@@ -1777,6 +1777,8 @@ const resolvers = {
     },
     comments: async ({ _id, comments }, { page, sort }, context, info) => {
       if (comments) return comments;
+      if (!page) page = 0;
+      if (!sort) sort = 0;
 
       const criteria = { mediaType: NOTE_MEDIA_TYPE_ID, replyId: null };
 
@@ -1855,6 +1857,8 @@ const resolvers = {
     },
     comments: async ({ _id, comments }, { page, sort }, context, info) => {
       if (comments) return comments;
+      if (!page) page = 0;
+      if (!sort) sort = 0;
 
       const criteria = { mediaType: IMAGE_MEDIA_TYPE_ID, replyId: null };
 
@@ -1943,6 +1947,8 @@ const resolvers = {
     },
     comments: async ({ _id, comments }, { page, sort }, context, info) => {
       if (comments) return comments;
+      if (!page) page = 0;
+      if (!sort) sort = 0;
 
       const criteria = { mediaType: VIDEO_MEDIA_TYPE_ID, replyId: null };
 
@@ -2106,7 +2112,7 @@ const resolvers = {
         mediaType: NOTE_MEDIA_TYPE_ID,
       })
         .sort({
-          uploadedAt: -1,
+          createdAt: -1,
         })
         .skip(notePage * perPage)
         .limit(perPage)
@@ -2116,7 +2122,7 @@ const resolvers = {
           commentCount: 1,
           username: 1,
           caption: 1,
-          uploadedAt: 1,
+          createdAt: 1,
           _id: 1,
         })
         .lean();
@@ -2133,7 +2139,7 @@ const resolvers = {
         mediaType: IMAGE_MEDIA_TYPE_ID,
       })
         .sort({
-          uploadedAt: -1,
+          createdAt: -1,
         })
         .skip(imgPage * perPage)
         .limit(perPage)
@@ -2145,7 +2151,7 @@ const resolvers = {
           url: 1,
           title: 1,
           caption: 1,
-          uploadedAt: 1,
+          createdAt: 1,
           _id: 1,
         })
         .lean();
@@ -2162,7 +2168,7 @@ const resolvers = {
         mediaType: VIDEO_MEDIA_TYPE_ID,
       })
         .sort({
-          uploadedAt: -1,
+          createdAt: -1,
         })
         .skip(vidPage * perPage)
         .limit(perPage)
@@ -2176,7 +2182,7 @@ const resolvers = {
           title: 1,
           caption: 1,
           viewCount: 1,
-          uploadedAt: 1,
+          createdAt: 1,
           _id: 1,
         })
         .lean();
