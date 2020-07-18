@@ -113,6 +113,16 @@ const verifyTokenMiddleware = (req, res, next) => {
   });
 };
 
+app.use("/mcount", async (req, res) => {
+  try {
+    return res
+      .status(200)
+      .send({ mcount: await User.find({ active: true }).countDocuments() });
+  } catch (e) {
+    return res.status(500).send({ error: "Something went wrong" });
+  }
+});
+
 app.use("/auth", authRouter);
 
 app.use("/users", verifyTokenMiddleware, userRouter);
