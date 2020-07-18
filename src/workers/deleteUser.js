@@ -92,4 +92,4 @@ function start() {
   });
 }
 
-throng({ workers: process.env.WEB_CONCURRENCY, start });
+throng({ workers: process.env.WEB_CONCURRENCY || 2, start });
