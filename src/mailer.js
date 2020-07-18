@@ -111,8 +111,8 @@ export class Mailer {
       to: email,
       from: "openaccess@usa.com",
       subject: `Change Password`,
-      text: `Open this link to reset password: ${process.env.SITE_HOST}/password-reset/${tempKey}`,
-      html: `Click this link to reset password: <a href="${process.env.SITE_HOST}/password-reset/${tempKey}">reset</a>`,
+      text: `Open this link to reset your password: ${process.env.SITE_HOST}/password-reset/${tempKey}`,
+      html: `Click this link to reset your password: <a href="${process.env.SITE_HOST}/password-reset/${tempKey}">reset</a>`,
     };
 
     const options = {

@@ -42,16 +42,16 @@ export async function parseLinks(str, creator, mediaType, mediaId, commentId) {
 
 export function stripLinks(str) {
   return str
-    .replace(/&lt/g, "<")
-    .replace(/&gt/g, ">")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
     .replace(/<a.*?[^=]>/g, "")
     .replace(/<\/a>/g, "");
 }
 
 export function convertHashtagsToLinks(str) {
   return str
-    .replace(/</g, "&lt")
-    .replace(/>/g, "&gt")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
     .replace(
       /(#[a-z0-9_-]+)/g,
       (match) =>
