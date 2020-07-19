@@ -3,7 +3,7 @@ dotenv.config();
 
 import dayjs from "dayjs";
 
-import emailQueue from "./queues/email";
+import taskQueue from "./queues/tasks";
 
 export class Mailer {
   static welcome(recipient) {
@@ -21,7 +21,7 @@ export class Mailer {
       removeOnComplete: true,
     };
 
-    emailQueue.add(msg, options);
+    taskQueue.add({ type: "email", params: msg }, options);
   }
 
   static paymentReceipt(recipient, payment) {
@@ -75,7 +75,7 @@ export class Mailer {
       removeOnComplete: true,
     };
 
-    emailQueue.add(msg, options);
+    taskQueue.add({ type: "email", params: msg }, options);
   }
 
   static unsubscribed(recipient) {
@@ -102,7 +102,7 @@ export class Mailer {
       removeOnComplete: true,
     };
 
-    emailQueue.add(msg, options);
+    taskQueue.add({ type: "email", params: msg }, options);
   }
 
   static async forgotPassword(recipient) {
@@ -120,6 +120,6 @@ export class Mailer {
       removeOnComplete: true,
     };
 
-    await emailQueue.add(msg, options);
+    await taskQueue.add({ type: "email", params: msg }, options);
   }
 }

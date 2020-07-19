@@ -1,2 +1,1 @@
-email: node build/workers/email.js
-delete: node build/workers/deleteUser.js
+tasks: node build/workers/tasks.js

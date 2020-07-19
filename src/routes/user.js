@@ -5,7 +5,7 @@ const { User } = require("../database");
 
 const router = require("express").Router();
 
-import deleteUserQueue from "../queues/deleteUser";
+import taskQueue from "../queues/tasks";
 
 router.put("/", async (req, res) => {
   try {
@@ -34,7 +34,10 @@ router.delete("/", async (req, res) => {
       attempts: 2,
       removeOnComplete: true,
     };
-    await deleteUserQueue.add({ username: req.username }, options);
+    await taskQueue.add(
+      { type: "delete", params: { username: req.username } },
+      options
+    );
 
     return res.status(200).send(true);
   } catch (e) {
