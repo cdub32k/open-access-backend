@@ -33,7 +33,7 @@ const {
 let maxJobsPerWorker = 4;
 
 function start() {
-  taskQueue.process(maxJobsPerWorker, function (job, done) {
+  taskQueue.process(maxJobsPerWorker, async function (job, done) {
     let { type, params } = job.data;
     switch (type) {
       case "email": {
@@ -48,7 +48,7 @@ function start() {
       case "delete": {
         try {
           let username = params.username;
-    
+
           let vComments = await Comment.find({
             username,
             mediaType: VIDEO_MEDIA_TYPE_ID,
@@ -70,7 +70,7 @@ function start() {
             .select({ _id: 1 })
             .lean();
           nComments.forEach(async (nc) => await deleteNoteComment(nc._id));
-    
+
           let videos = await Media.find({
             username,
             mediaType: VIDEO_MEDIA_TYPE_ID,
@@ -85,11 +85,14 @@ function start() {
             .select({ _id: 1 })
             .lean();
           images.forEach(async (i) => await deleteImage(i._id));
-          let notes = await Media.find({ username, mediaType: NOTE_MEDIA_TYPE_ID })
+          let notes = await Media.find({
+            username,
+            mediaType: NOTE_MEDIA_TYPE_ID,
+          })
             .select({ _id: 1 })
             .lean();
           notes.forEach(async (n) => await deleteNote(n._id));
-    
+
           await Promise.all([
             User.deleteOne({ username }),
             View.deleteMany({ username }),
@@ -101,7 +104,7 @@ function start() {
               $or: [{ receiver: username }, { sender: username }],
             }),
           ]);
-    
+
           done();
         } catch (e) {
           done(e);
