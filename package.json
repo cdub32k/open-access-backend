@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "compress": "babel-node compress.js",
-    "worker:email": "babel-node src/workers/email.js",
-    "worker:delete-user": "babel-node src/workers/deleteUser.js",
+    "worker:tasks": "babel-node src/workers/tasks.js",
     "serve": "NODE_ENV=development nodemon --exec babel-node src/server.js",
     "serve:no-reload": "NODE_ENV=development babel-node src/server.js",
     "seed:db": "babel-node jobs/seed_db.js",

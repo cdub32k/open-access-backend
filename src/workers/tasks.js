@@ -1,3 +1,4 @@
+import "regenerator-runtime/runtime.js";
 import dotenv from "dotenv";
 dotenv.config();
 import throng from "throng";
