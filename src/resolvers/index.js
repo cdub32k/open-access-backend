@@ -36,7 +36,7 @@ const resolvers = {
         new Date(user.activeUntil) < new Date()
       ) {
         user.active = false;
-        await User.updateOne({ _id: user._id }, { active: false });
+        await DB.User.updateOne({ _id: user._id }, { active: false });
       }
 
       return user;
