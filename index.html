@@ -54,69 +54,81 @@
       document.addEventListener("DOMContentLoaded", function () {
         if (window.document.documentMode) {
           document.body.innerHTML =
-            "<h1 style='color:red'>BROWSER NOT SUPPORTED</h1>";
+            "<h1 style='color:red'>BROWSER NOT SUPPORTED</h1>"
           alert(
             "Internet Explorer is not supported by this website. Please use Chrome, Firefox, Safari, or Microsoft Edge."
-          );
+          )
         }
-      });
+      })
       function convert2Seconds(h, m, s) {
-        let total = 0;
-        if (h) total += h * 60 * 60;
-        if (m) total += m * 60;
-        if (s) total += s * 1;
-        return total;
+        let total = 0
+        if (h) total += h * 60 * 60
+        if (m) total += m * 60
+        if (s) total += s * 1
+        return total
       }
       function vidJump(videoId, h, m, s) {
         if (window.location.href.indexOf("video-player") == -1) {
-          let link = "/video-player/" + videoId + "?";
-          if (h) link += "h=" + h + "&";
-          if (m) link += "m=" + m + "&";
-          if (s) link += "s=" + s;
-          window.location.href = link;
+          let link = "/video-player/" + videoId + "?"
+          if (h) link += "h=" + h + "&"
+          if (m) link += "m=" + m + "&"
+          if (s) link += "s=" + s
+          window.location.href = link
         }
 
-        var p = document.querySelector(".react-player__preview");
-        var v;
+        var p = document.querySelector(".react-player__preview")
+        var v
         if (p) {
-          p.click();
+          p.click()
           function getV() {
-            v = document.querySelector("video");
+            v = document.querySelector("video")
             if (v) {
-              clearInterval(vTries);
+              clearInterval(vTries)
               function setV() {
-                v.currentTime = convert2Seconds(h, m, s);
-                v.removeEventListener("loadeddata", setV);
+                v.currentTime = convert2Seconds(h, m, s)
+                v.removeEventListener("loadeddata", setV)
               }
-              document.documentElement.scrollTop = 0;
-              if (v.readyState >= 3) v.currentTime = convert2Seconds(h, m, s);
-              else v.addEventListener("loadeddata", setV, false);
+              document.documentElement.scrollTop = 0
+              if (v.readyState >= 3) v.currentTime = convert2Seconds(h, m, s)
+              else v.addEventListener("loadeddata", setV, false)
             }
           }
-          var vTries = setInterval(getV, 200);
+          var vTries = setInterval(getV, 200)
         } else {
-          v = document.querySelector("video");
-          v.currentTime = convert2Seconds(h, m, s);
-          v.play().catch((e) => {});
+          v = document.querySelector("video")
+          v.currentTime = convert2Seconds(h, m, s)
+          v.play().catch((e) => {})
         }
       }
     </script>
-  <link rel="shortcut icon" href="https://open-access-network.s3.amazonaws.com/app/favicon.ico"><link href="https://open-access-network.s3.amazonaws.com/app/bundle.css" rel="stylesheet"></head>
+    <link
+      rel="shortcut icon"
+      href="https://open-access-dev.s3.amazonaws.com/app/favicon.ico"
+    />
+    <link
+      href="https://open-access-dev.s3.amazonaws.com/app/bundle.css"
+      rel="stylesheet"
+    />
+  </head>
 
-  <body style="min-height: 1200px; position: relative; padding-bottom: 200px;">
+  <body style="min-height: 1200px; position: relative; padding-bottom: 200px">
     <div id="root"></div>
     <footer>
       <div>
         Questions or Comments? Email
-        <b style="color: #7fb069;">openaccess@usa.com</b>
+        <b style="color: #7fb069">openaccess@usa.com</b>
       </div>
       <ul
-        style="list-style-type: none; margin: 0; padding: 0; overflow: hidden;"
+        style="list-style-type: none; margin: 0; padding: 0; overflow: hidden"
       >
         <li><a data-nativelink href="/terms">Terms of Service</a></li>
         <li>|</li>
         <li><a data-nativelink href="/pp">Privacy Policy</a></li>
       </ul>
     </footer>
-  <script type="text/javascript" src="https://open-access-network.s3.amazonaws.com/app/main.69013d2930aa9a775fb6.bundle.js"></script></body>
+    <script
+      type="text/javascript"
+      src="https://open-access-dev.s3.amazonaws.com/app/main.f9b0e4426f797222a9cf.bundle.js"
+    ></script>
+  </body>
 </html>
